@@ -1,3 +1,12 @@
+#' Calculate arc length along a 2D curve
+#'
+#' Computes the straight-line distance between points on the curve and
+#' then adds them up to get the arc length.
+#'
+#' @param x,y Coordinates of the curve.
+#'
+#' @return Arc length along the curve.
+#' @export
 arclength <- function(x, y)
 {
   assertthat::assert_that(length(x) == length(y))

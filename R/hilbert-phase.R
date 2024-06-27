@@ -1,14 +1,19 @@
-#' Title
+#' Constructs a smoothing filter
 #'
-#' @param lo
-#' @param hi
-#' @param sampfreq
-#' @param order
+#' Wrapper function for `gsignal::butter` to construct a bandpass (or
+#' low or high pass) filter at a particular frequency. Uses the Sos form for
+#' the filter, which works better numerically particularly for very low
+#' frequencies.
 #'
-#' @return
+#' @param lo Lower frequency cutoff in Hz. If only `lo` is specified, then
+#'   `build_filter` constructs a high pass filter
+#' @param hi Upper frequency cutoff in Hz. If only `hi` is specified, then
+#'   `build_filter` constructs a high pass filter
+#' @param sampfreq Sampling frequency for the data in Hz.
+#' @param order (optional) Order for the filter
+#'
+#' @return Filter parameters in Sos form
 #' @export
-#'
-#' @examples
 build_filter <- function(lo=NULL, hi=NULL, sampfreq, order=13)
 {
   assertthat::assert_that(!(is.null(lo) & is.null(hi)),
