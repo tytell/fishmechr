@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 # library(fishmechr)
 devtools::load_all()
 library(tidyverse)
+library(patchwork)
 ```
 
 # Using the Hilbert transform to estimate swimming kinematics
@@ -92,11 +93,59 @@ lampreydata |>
 ```
 
 ```{r}
-lampreydata |> 
+lampreydata <-
+  lampreydata |> 
   group_by(point) |> 
-  mutate(ph = hilbert_phase(curve_ang)) |> 
-  filter(point %in% c(10, 18)) |> 
+  mutate(ph = hilbert_phase(curve_ang))
+```
+
+
+```{r}
+lampreydata |> 
+  ungroup() |> 
+  filter(point %in% c(3, 8, 12, 16, 18)) |> 
   ggplot(aes(x = t, y = ph, color = point)) +
   geom_path(aes(group = point))
+```
+
+```{r}
+lampreydata |> 
+  group_by(point) |> 
+  mutate(freq1 = get_frequency(t, ph, method='deriv'),
+         freq2 = get_frequency(t, ph, method='slope')) |> 
+  filter(point %in% c(3, 8, 12, 16, 18)) |> 
+  ggplot(aes(x = t, y = freq1, color = point)) +
+  geom_point() +
+  geom_point(aes(y = freq2), shape=2)
+```
+
+```{r}
+w <-
+  lampreydata |> 
+  filter(frame %in% c(50)) |> 
+  group_by(frame) |> 
+  mutate(ph2 = gsignal::unwrap(ph),
+         wavelen1 = get_wavelength(smm, ph, method="deriv",
+                                   ignore_s = \(s) s < 30),
+         wavelen2 = get_wavelength(smm, ph, method="slope",
+                                   ignore_s = \(s) s < 30),
+         wavelen3 = get_wavelength(smm, ph, method="cycle",
+                                   ignore_s = \(s) s < 30),
+         wavelen4 = get_wavelength(smm, ph, method="halfcycle",
+                                   ignore_s = \(s) s < 30))
+w
+
+p1 <- w |>  
+  ggplot(aes(x = smm, y = ph2 / (2*pi), color = frame)) +
+  geom_path()
+
+p2 <- w |> 
+  ggplot(aes(x = smm)) +
+  geom_point(aes(y = wavelen1), color = 'black') +
+  geom_point(aes(y = wavelen2), color = 'red') +
+  geom_point(aes(y = wavelen3), color = 'green') +
+  geom_point(aes(y = wavelen4), color = 'blue')
+
+p1 / p2
 ```
 
