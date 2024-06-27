@@ -1,0 +1,94 @@
+---
+title: "hilbert-phase"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{hilbert-phase}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+# library(fishmechr)
+devtools::load_all()
+library(tidyverse)
+```
+
+# Using the Hilbert transform to estimate swimming kinematics
+
+One convenient and relatively robust way to estimate body wavelength, wave speed, and bending frequency involves the use of the Hilbert transform $\mathbf{H}$, a procedure that uses the Fourier transform to estimate a periodic signal that is \qty{90}{\degree} shifted relative to another. In essence, given a cosine signal, the Hilbert transform returns the sine with the same amplitude and frequency. The utility of this operation is that it lets us estimate the ``analytic signal'', a complex-valued signal where the magnitude of the complex number is the amplitude of the wave and the phase angle of the complex number is the phase of the signal.
+
+If a fish swims using a traveling wave of curvature $\kappa_s$ defined at a position $s$ along the body as
+$$\kappa_s(t) = A_s(t) \cos\left(2\pi \left[ \frac{s}{\lambda} - f t \right] \right)$$
+where $A_s(t)$ is the wave amplitude, $k$ is the wave length, $f$ is the oscillation frequency, and $t$ is time.
+
+We can then take the Hilbert transform to estimate the analytic signal for curvature
+$$\kappa^*_s(t) = \kappa_s(t) + i \mathbf{H}\{\kappa_s(t)\}$$
+where $i$ is the imaginary number. (Note that the `hilbert` function returns the full analytic signal, not just the imaginary component as written above). For a complex number $C = a + ib$, the magnitude is denoted by $||C|| = \left[ a^2 + b^2 \right]^{1/2}$ and the phase angle is denoted by $\angle C = \tan^{-1} (b / a)$. 
+
+This provides an estimate of the phase can be estimated as a continuous function of both time and position along the body. Other techniques for estimating phase require identifying particular features in the signal (such as peaks or zero crossings) and therefore do not estimate phase as a continuous signal. The estimated phase $\hat{\phi}$ is thus
+$$\hat{\phi}_s(t) = \angle \kappa^*_s(t).$$
+For a traveling wave, this phase, as estimated here, is equal to the argument of the cosine function from the traveling wave equation above, $\hat{\phi}_s(t) = 2\pi [s/\lambda - f t]$.
+
+Therefore, we can use the estimated phase to compute the frequency and wavelength by taking derivatives in time or space, respectively,
+$$\hat{f}(t) = \frac{1}{2\pi} \frac{\partial}{\partial t} \hat{\phi}_s(t)$$
+$$\hat{\lambda}_s(t) = 2 \pi \left( \frac{\partial}{\partial s} \hat{\phi}_s(t) \right)^{-1}$$
+
+The body wave speed $\hat{V}$ is the product of the two:
+$$\hat{V}(t) = \hat{\lambda}_s(t) \hat{f}(t)$$
+
+## Numerical considerations
+
+First, the Hilbert transform only works well for this analysis with signals that are centered around zero and consist of many relatively smooth tailbeats. This is why we suggest using the curvature $\kappa$, rather than something like lateral position or the $y$ coordinate of the body. To use the Hilbert transform on a lateral position, it is important to subtract a baseline value or use a high pass filter to ensure that the signal is centered around zero.
+
+Similarly, if the signal is noisy, the phase $\hat{\phi}$ will not increase steadily and the derivatives used to estimate $\hat{f}$ and $\hat{\lambda}$ will not be meaningful. It is best to filter the input signal using a bandpass or low pass filter so that the oscillations are smooth.
+
+In most programming languages, one should use a function `atan2` to estimate phase (not `atan`), because it gives an angle that ranges around the full circle (rather than 0 to 180 degrees). However, the output of `atan2` will jump (usually from $\pi$ to $-\pi$) as $t$ or $s$ increase. To estimate frequency or wavelength, before performing the derivatives, one should estimate a smoothly increasing phase using a function `unwrap`, which searches for jumps and removes them.
+
+# Example analysis of a lamprey data set
+
+```{r}
+head(lampreydata)
+```
+
+```{r}
+lampreydata |> 
+  filter(frame %in% c(10, 20)) |> 
+  mutate(frame = factor(frame)) |> 
+  ggplot(aes(x = mxmm, mymm, color = frame, group = frame)) +
+  geom_path() +
+  coord_fixed()
+```
+
+```{r}
+lampreydata <-
+  lampreydata |> 
+  group_by(frame) |> 
+  mutate(smm = arclength(mxmm, mymm),
+         curve_ang = curvature(smm, mxmm, mymm),
+         curve_xy = curvature(smm, mxmm, mymm, method="xy"))
+```
+
+```{r}
+lampreydata |> 
+  filter(frame %in% c(10, 20)) |> 
+  mutate(frame = factor(frame)) |> 
+  ggplot(aes(x = smm, color = frame, group = frame)) +
+  geom_path(aes(y = curve_ang), linetype='solid') +
+  geom_path(aes(y = curve_xy), linetype='dashed')
+```
+
+
+```{r}
+lampreydata |> 
+  filter(point %in% c(1, 10, 20)) |> 
+  ggplot(aes(x = t, y = mymm, color = factor(point))) +
+  geom_path(aes(group = point))
+```
+
