@@ -83,12 +83,20 @@ lampreydata |>
   geom_path(aes(y = curve_ang), linetype='solid') +
   geom_path(aes(y = curve_xy), linetype='dashed')
 ```
-
+```{r}
+lampreydata |> 
+  filter(point %in% c(10, 18)) |>
+  mutate(point = factor(point)) |> 
+  ggplot(aes(x = t, y = curve_ang, color = point)) +
+  geom_path()
+```
 
 ```{r}
 lampreydata |> 
-  filter(point %in% c(1, 10, 20)) |> 
-  ggplot(aes(x = t, y = mymm, color = factor(point))) +
+  group_by(point) |> 
+  mutate(ph = hilbert_phase(curve_ang)) |> 
+  filter(point %in% c(10, 18)) |> 
+  ggplot(aes(x = t, y = ph, color = point)) +
   geom_path(aes(group = point))
 ```
 

@@ -13,11 +13,20 @@
 #' @export
 #'
 #' @examples
-skip_na <- function(x, f, ...)
+skip_na <- function(x, f, min.len = 1, ...)
 {
-  good <- !is.na(x) & is.finite(x)
-  xf <- purrr::rep_along(NA, x)
+  good <- is.finite(x)
 
-  xf[good] <- f(x[good], ...)
+  if (sum(good) >= min.len) {
+    xf0 <- f(x[good], ...)
+    xf <- vector(typeof(xf0), length = length(x))
+
+    xf[good] <- xf0
+    xf[!good] <- NA
+  } else {
+    xf <- vector(typeof(x), length = length(x))
+    xf[!good] <- NA
+  }
+
   xf
 }
