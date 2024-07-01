@@ -46,18 +46,42 @@ $$\hat{V}(t) = \hat{\lambda}_s(t) \hat{f}(t)$$
 
 ## Numerical considerations
 
-First, the Hilbert transform only works well for this analysis with signals that are centered around zero and consist of many relatively smooth tailbeats. This is why we suggest using the curvature $\kappa$, rather than something like lateral position or the $y$ coordinate of the body. To use the Hilbert transform on a lateral position, it is important to subtract a baseline value or use a high pass filter to ensure that the signal is centered around zero.
+The Hilbert transform only works well for this analysis with signals that are centered around zero and consist of many relatively smooth tailbeats. This is why we suggest using the curvature $\kappa$, rather than something like lateral position or the $y$ coordinate of the body. To use the Hilbert transform on a lateral position, it is important to subtract a baseline value or use a high pass filter to ensure that the signal is centered around zero.
 
 Similarly, if the signal is noisy, the phase $\hat{\phi}$ will not increase steadily and the derivatives used to estimate $\hat{f}$ and $\hat{\lambda}$ will not be meaningful. It is best to filter the input signal using a bandpass or low pass filter so that the oscillations are smooth.
 
 In most programming languages, one should use a function `atan2` to estimate phase (not `atan`), because it gives an angle that ranges around the full circle (rather than 0 to 180 degrees). However, the output of `atan2` will jump (usually from $\pi$ to $-\pi$) as $t$ or $s$ increase. To estimate frequency or wavelength, before performing the derivatives, one should estimate a smoothly increasing phase using a function `unwrap`, which searches for jumps and removes them.
 
+## Arc length
+
+Most kinematic variables are best specified in terms of arc length $s$, the distance along the body from the head to a particular point $i$:
+$$ s_i = \sum_{j=2}^i \left[ (x_j - x_{j-1})^2 + (y_j - y_{j-1})^2 \right] $$
+Using arc length is better than something like the $x$ coordinate for two reasons. First, often a fish does not swim precisely along the $x$ axis, which means that the points would need to be rotated. Second, many fish swim with relatively large amplitude motions, which means that the distance along the curve is larger than the distance along the swimming direction, particularly near the tail where amplitudes are higher.
+
+## Estimating curvature
+
+The 2D curvature $\kappa$ of the midline in the horizontal plane is often a useful variable to compute. It can be thought of in two different ways. First, it is the inverse of the radius of curvature: the radius of a circle drawn through three successive points. The smaller the radius of curvature, the sharper the body bend, and the larger the value of $\kappa$. This estimate for curvature is defined by the following equation
+$$ \kappa = \left[ \frac{\partial x}{\partial s} \frac{\partial^2 y}{\partial s^2} - \frac{\partial y}{\partial s} \frac{\partial^2 x}{\partial s^2} \right] \left[ \left( \frac{\partial x}{\partial s} \right)^2 + \left( \frac{\partial y}{\partial s} \right)^2 \right]^{-3/2} $$
+
+Second, it is the spatial derivative of the angle of each segment. If a segment at arc length $s$ has an angle $\theta$ to the horizontal axis, then the curvature is
+$$ \kappa = \frac{\partial \theta}{\partial s} $$
+The angle for segment $i$ is $\theta_i = \tan^{-1}(y_{i+1} - y_i, x_{i+1} - x_i)$.
+
+Although both formulas are mathematically equivalent, they have slightly different properties depending on the measurement error on the $x$ and $y$ positions.
+
 # Example analysis of a lamprey data set
 
+The data set `lampreydata` is included in the `fishmechr` package. Most swimming kinematics
+data sets should have a similar structure:
+* A time or frame column. It's often good to keep both in the data set. (Here, these are in `t` and `frame`)
+* A column that identifies the point on the body. This could be a factor variable, with names of each body part (like returned by Sleap or DeepLabCut), as long as there is a clear order from head to tail. Or it could be a numeric variable, with points numbered from 1 to $n$, where 1 is the snout and $n$ is the tail. (here this is in `point`).
+* x and y coordinates of the point. Currently, these algorithms are only designed to work on 2D movements in the horizontal plane. (here these are in `mxmm` and `mymm`, indicating "midline" x and y points in mm)
+  
 ```{r}
 head(lampreydata)
 ```
 
+This plot shows the midlines in two frames.
 ```{r}
 lampreydata |> 
   filter(frame %in% c(10, 20)) |> 
@@ -66,6 +90,8 @@ lampreydata |>
   geom_path() +
   coord_fixed()
 ```
+
+## Compute curvature
 
 ```{r}
 lampreydata <-
