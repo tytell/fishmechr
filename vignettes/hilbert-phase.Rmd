@@ -31,9 +31,11 @@ where $A_s(t)$ is the wave amplitude, $k$ is the wave length, $f$ is the oscilla
 
 We can then take the Hilbert transform to estimate the analytic signal for curvature
 $$\kappa^*_s(t) = \kappa_s(t) + i \mathbf{H}\{\kappa_s(t)\}$$
-where $i$ is the imaginary number. (Note that the `hilbert` function returns the full analytic signal, not just the imaginary component as written above). For a complex number $C = a + ib$, the magnitude is denoted by $||C|| = \left[ a^2 + b^2 \right]^{1/2}$ and the phase angle is denoted by $\angle C = \tan^{-1} (b / a)$. 
+where $i$ is the imaginary number. (Note that the `hilbert` function in R and Python returns the full analytic signal, not just the imaginary component as written above). For a complex number $C = a + ib$, the magnitude is denoted by $||C|| = \left[ a^2 + b^2 \right]^{1/2}$ and the phase angle is denoted by $\angle C = \tan^{-1} (b / a)$.
 
-This provides an estimate of the phase can be estimated as a continuous function of both time and position along the body. Other techniques for estimating phase require identifying particular features in the signal (such as peaks or zero crossings) and therefore do not estimate phase as a continuous signal. The estimated phase $\hat{\phi}$ is thus
+One can also estimate the analytic signal for the lateral excursion of the body $z_s(t)$, where $z$ is the lateral position of a point on the body, relative to the overall axis of the body. We suggest using the singular value decomposition to estimate the central body axis and then using a low-pass filter with a cutoff frequency lower than the tail beat frequency to remove the tail beat oscillation. See numerical details below.
+
+The analytic signal thus provides an estimate of the phase can be estimated as a continuous function of both time and position along the body. Other techniques for estimating phase require identifying particular features in the signal (such as peaks or zero crossings) and therefore do not estimate phase as a continuous signal. The estimated phase $\hat{\phi}$ is thus
 $$\hat{\phi}_s(t) = \angle \kappa^*_s(t).$$
 For a traveling wave, this phase, as estimated here, is equal to the argument of the cosine function from the traveling wave equation above, $\hat{\phi}_s(t) = 2\pi [s/\lambda - f t]$.
 
