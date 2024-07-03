@@ -5,7 +5,7 @@
 #'
 #' @param x,y Coordinates of the curve.
 #'
-#' @return Arc length along the curve.
+#' @returns Arc length along the curve.
 #' @export
 arclength <- function(x, y)
 {
@@ -29,6 +29,9 @@ arclength <- function(x, y)
 #'   * 'direct' (default) Uses a direct formula, based on a central difference of
 #'     forward and backward differences, from [https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/]
 #'   * 'repeat' Repeat two first derivatives.
+#'
+#' @returns Derivative of y relative to x.
+#' @export
 deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
 {
   assertthat::assert_that(ord %in% c(1, 2),
@@ -71,7 +74,18 @@ deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
 
 #' Estimates curvature for a single curve
 #'
-#' Assumes that points are in order
+#' Estimates curvature either directly through derivatives of the x and y
+#' coordinates relative to arc length, or as the derivative of segment angle
+#' relative to arc length.
+#'
+#' Assumes that points are in order along the curve from head to tail.
+#'
+#' @param s Arc length along the body.
+#' @param x,y Coordinates of each point along the body
+#' @param method ("xy" or "angle") for the direct formula or for the angle
+#'     derivative
+#' @returns Curvature.
+#' @export
 curvature <- function(s, x, y, method="angle")
 {
   assertthat::assert_that(method %in% c("angle", "xy"))
