@@ -26,13 +26,49 @@ get_frequency <- function(t, ph, unwrap=FALSE, method='deriv', mod=2*pi,
   freq
 }
 
-get_cycle_numbers <- function(ph, unwrap=FALSE, mod=2*pi)
+get_cycle_numbers <- function(ph, unwrap=FALSE, mod=2*pi,
+                              exclude_partial_cycles=TRUE)
 {
   if (unwrap) {
     ph <- skip_na(ph, gsignal::unwrap)
   }
 
-  cyc <- floor(ph / mod)
+  ph <- ph / mod
+  dph = mean(diff(ph), na.rm = TRUE)
+
+  if (exclude_partial_cycles) {
+    d <- tibble(ph, cyc = floor(ph)) |>
+      group_by(cyc) |>
+      mutate(lo = min(ph) - cyc,
+             hi = max(ph) - cyc,
+             good = (lo <= 1.5*dph) & (hi >= (1 - 1.5*dph)),
+             cyc = if_else(good, cyc, NA))
+
+    d$cyc
+  } else {
+    floor(ph)
+  }
+}
+
+get_body_cycle_numbers <- function(df, t, ph, point, pointval,
+                                   overwrite=TRUE, ...)
+{
+  check_if_overwrite_columns(df, c("cycle"), overwrite)
+
+  tname <- rlang::as_name(enquo(t))
+  by <- tname
+
+  cycdf <-
+    df |>
+    ungroup() |>
+    filter({{point}} == pointval) |>
+    mutate(cycle = get_cycle_numbers({{ph}}, ...))
+
+  left_join(df |>
+              select(-any_of("cycle")),
+            cycdf |>
+              select(any_of(tname), cycle),
+            by = by)
 }
 
 get_wavelength <- function(s, ph, unwrap=TRUE, method='deriv',
