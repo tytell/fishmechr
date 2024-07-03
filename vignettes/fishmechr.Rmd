@@ -113,8 +113,10 @@ lampreydata |>
   coord_fixed()
 ```
 
+
 ## Compute curvature
 
+This computes the curvature by the two different methods.
 ```{r}
 lampreydata <-
   lampreydata |> 
@@ -124,6 +126,8 @@ lampreydata <-
          curve_xy = curvature(smm, mxmm, mymm, method="xy"))
 ```
 
+Compare the results. Here they aren't very different, although the "xy" method
+gives very slightly higher peaks.
 ```{r}
 lampreydata |> 
   filter(frame %in% c(10, 20)) |> 
@@ -132,6 +136,7 @@ lampreydata |>
   geom_path(aes(y = curve_ang), linetype='solid') +
   geom_path(aes(y = curve_xy), linetype='dashed')
 ```
+Plot curvature as a function of time for two different points along the body. For the Hilbert analysis to work well, these should be close to sinusoidal and centered around 0.
 ```{r}
 lampreydata |> 
   filter(point %in% c(10, 18)) |>
@@ -140,60 +145,203 @@ lampreydata |>
   geom_path()
 ```
 
+## Get excursion
+
+This extracts the central swimming axis.
+```{r}
+swimaxis <-
+    lampreydata |>
+    group_by(t) |>
+    summarize(swimaxis = get_primary_swimming_axis(mxmm,mymm)) |> 
+    unnest(swimaxis)
+
+swimaxis
+```
+
+
+```{r}
+lampreydata <- lampreydata |> 
+  get_primary_swimming_axis_df(t,point, mxmm,mymm)
+```
+
+```{r}
+lampreydata |> 
+  filter(frame %in% c(10, 20, 30)) |> 
+  ggplot(aes(x = mxmm, y = mymm, color = frame)) +
+  geom_path(aes(group = frame)) +
+  geom_point(aes(x = mxmm_ctr, y = mymm_ctr), color='red') +
+  geom_segment(data = ~ filter(.x, point == 20), 
+               aes(x = mxmm_ctr, y = mymm_ctr, 
+                   xend = mxmm_ctr - 50*swimaxis_x, 
+                   yend = mymm_ctr - 50*swimaxis_y)) +
+  facet_grid(frame ~ .) +
+  coord_fixed()
+```
+
+Similar to curvature, we can compute phases based on the lateral excursions (`b`). As above, they need to be mostly sinusoidal and centered around zero.
+```{r}
+lampreydata |> 
+  filter(point %in% c(10, 18)) |>
+  mutate(point = factor(point)) |> 
+  ggplot(aes(x = t, y = b, color = point)) +
+  geom_path()
+```
+
+## Phase
+
+Now we compute the phase of each body point as it oscillates over time, looking at either the curvature `curve_ang` or the excursion `b`.
 ```{r}
 lampreydata <-
   lampreydata |> 
   group_by(point) |> 
-  mutate(ph = hilbert_phase(curve_ang))
+  mutate(ph_c = hilbert_phase(curve_ang),
+         ph_e = hilbert_phase(b))
 ```
+`hilbert_phase` does a few checks on the results and gives warnings if it finds things that might cause problems.
+* It checks to make sure that most of the input data is not NA. It does not give a warning if all of the input data is NA, only if at least some of the data is not NA.
+* It checks that the input signal seems to oscillate around 0.
+* It looks whether the phase mostly advances over time. If we have cases when the phase seems to run backwards, that's often a good indication that the data isn't smoothed enough. In the case above, the warning is for point 2, which is close to the head, where curvature tends to be quite low, so we can ignore the warning.
 
-
+Compare the two phase estimates. We expect the slopes to be the same, but there could be an offset of $2\pi$ in places. Here solid lines are phase based on curvature and dashed are phase based on excursion.
 ```{r}
 lampreydata |> 
   ungroup() |> 
-  filter(point %in% c(3, 8, 12, 16, 18)) |> 
-  ggplot(aes(x = t, y = ph, color = point)) +
-  geom_path(aes(group = point))
+  filter(point %in% c(3, 8, 15, 18)) |> 
+  mutate(point = factor(point)) |> 
+  pivot_longer(cols = c(ph_c, ph_e), names_to = "method", values_to = "phase") |> 
+  ggplot(aes(x = t, y = phase, color = point, linetype = method)) +
+  geom_path() + 
+  facet_wrap(~point)
 ```
+Note that the curvature based phase (solid line) tends to fluctuate a lot for point 3, which is near the head where curvature is small.
 
+## Frequency
+
+As described above, the time derivative of the phase is the frequency. Here, we can compute a frequency at each point along the body, although they ought to be the same.
 ```{r}
 lampreydata |> 
   group_by(point) |> 
-  mutate(freq1 = get_frequency(t, ph, method='deriv'),
-         freq2 = get_frequency(t, ph, method='slope')) |> 
-  filter(point %in% c(3, 8, 12, 16, 18)) |> 
-  ggplot(aes(x = t, y = freq1, color = point)) +
+  mutate(freq_c = get_frequency(t, ph_c, method='deriv'),
+         freq_e = get_frequency(t, ph_e, method='deriv')) |> 
+  pivot_longer(cols = c(freq_c, freq_e), names_to = "method", values_to = "freq") |> 
+  filter(point %in% c(3, 15, 18)) |> 
+  mutate(point = factor(point)) |> 
+  ggplot(aes(x = t, y = freq, color = point, shape = method)) +
+  scale_shape_manual(values = c(1, 17)) +
   geom_point() +
-  geom_point(aes(y = freq2), shape=2)
+  facet_wrap(~point)
+```
+# Body wavelength
+
+Body wavelength, as described above, is the derivative of the phase of each point along the body with respect to arc length. Phase typically decreases along the body, which indicates a backward traveling wave.
+```{r}
+lampreydata |> 
+  filter(frame %in% c(60, 80)) |> 
+  group_by(frame) |> 
+  mutate(phbody = ph_e) |>
+  ggplot(aes(x = smm, y = phbody, color = frame)) +
+  geom_path(aes(group = frame))
+```
+The apparent discontinuity at $s$ = 50mm is not real. It just reflects the fact that phase goes from $0$ to $2\pi$ and then wraps around back to 0. We get rid of that by using the `unwrap` function, applied across the spatial dimension (equivalently, using `group_by` with time or frame number).
+
+This is the phase across the body with the discontinuities removed.
+```{r}
+lampreydata |> 
+  filter(frame %in% c(60, 80)) |> 
+  group_by(frame) |> 
+  mutate(phbody = gsignal::unwrap(ph_e)) |>
+  ggplot(aes(x = smm, y = phbody, color = frame)) +
+  geom_path(aes(group = frame))
 ```
 
+## Methods of estimating wavelength
+
+There are several ways to estimate body wavelength based on the body phase, which have different advantages and disadvantages. The function `get_wavelength` can run each of them.
+
+1. At each point along the body, you can estimate the derivative of the phase with respect to arc length. This gives the most comprehensive results, and, in particular, makes it fairly simple to consider whether wavelength varies along the body, but is also very sensitive to noise.
+
+2. You can fit a line to all of the data along the body and take the slope of that line. This method is the least sensitive to noise, but only gives a single value along the entire body.
+
+3. You can look for the distance along the body in which the phase changes by a full or a half cycle. If you look for the phase at the tail and then step backward along the body until you find a point that's either a full or half cycle before the tail, then that distance represents a full or half wave, respectively. `get_wavelength` makes this process more accurate by using a simple linear interpolation to find the distance that represents exactly 1 or 0.5 waves.
+
+The phase tends to be poorly estimated for body points that are more anterior. `get_wavelength` allows you to specify a formula to ignore certain locations for the estimate. 
+
+Here is an example for a single frame. We're ignoring points that are less than 30mm from the head.
 ```{r}
 w <-
   lampreydata |> 
   filter(frame %in% c(50)) |> 
   group_by(frame) |> 
-  mutate(ph2 = gsignal::unwrap(ph),
-         wavelen1 = get_wavelength(smm, ph, method="deriv",
+  mutate(ph2 = gsignal::unwrap(ph_e),
+         wavelen_deriv = get_wavelength(smm, ph2, method="deriv",
                                    ignore_s = \(s) s < 30),
-         wavelen2 = get_wavelength(smm, ph, method="slope",
+         wavelen_slope = get_wavelength(smm, ph2, method="slope",
                                    ignore_s = \(s) s < 30),
-         wavelen3 = get_wavelength(smm, ph, method="cycle",
+         wavelen_cycle = get_wavelength(smm, ph2, method="cycle",
                                    ignore_s = \(s) s < 30),
-         wavelen4 = get_wavelength(smm, ph, method="halfcycle",
+         wavelen_halfcycle = get_wavelength(smm, ph2, method="halfcycle",
                                    ignore_s = \(s) s < 30))
-w
+w |> 
+  pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
+  ggplot(aes(x = smm, y = wavelen, color = method, shape = method)) +
+  geom_point()
+```
+Here, you can see that all of the methods give similar results, but there are different numbers of values and different resolution along the body. We suggest the "halfcycle" option as a good, relatively robust compromise.
 
-p1 <- w |>  
-  ggplot(aes(x = smm, y = ph2 / (2*pi), color = frame)) +
-  geom_path()
+```{r}
+lampreydata |> 
+  group_by(frame) |> 
+  mutate(phbody_e = gsignal::unwrap(ph_e),
+         phbody_c = gsignal::unwrap(ph_c),
+         wavelen_exc = get_wavelength(smm, phbody_e, method="halfcycle",
+                                    ignore_s = \(s) s < 30),
+         wavelen_curve = get_wavelength(smm, phbody_c, method="halfcycle",
+                                    ignore_s = \(s) s < 30)) |> 
+  pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
+  ggplot(aes(x = t)) +
+  geom_point(aes(y = wavelen, color = smm, shape=method)) +
+  scale_shape_manual(values = c(15, 4))
 
-p2 <- w |> 
+```
+Here we see that wavelength estimated based on curvature is slightly noisier than curvature based on excursion, and that both fluctuate over time.
+
+```{r}
+lampreydata |> 
+  group_by(frame) |> 
+  mutate(phbody_e = gsignal::unwrap(ph_e),
+         phbody_c = gsignal::unwrap(ph_c),
+         wavelen_exc = get_wavelength(smm, phbody_e, method="halfcycle",
+                                    ignore_s = \(s) s < 30),
+         wavelen_curve = get_wavelength(smm, phbody_c, method="halfcycle",
+                                    ignore_s = \(s) s < 30)) |> 
+  pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
   ggplot(aes(x = smm)) +
-  geom_point(aes(y = wavelen1), color = 'black') +
-  geom_point(aes(y = wavelen2), color = 'red') +
-  geom_point(aes(y = wavelen3), color = 'green') +
-  geom_point(aes(y = wavelen4), color = 'blue')
+  geom_point(aes(y = wavelen, color = smm, shape=method)) +
+  scale_shape_manual(values = c(15, 4)) +
+  facet_wrap(~method)
 
-p1 / p2
+```
+This plot shows wavelength as a function of body position and estimation method. The curvature-based wavelengths seem to increase along the body (aside from some erroneous very low values very close to the tail), while the excursion-based wavelengths tend to decrease moving toward the tail.
+
+# Amplitude
+
+To estimate amplitude, it's helpful to set up an overall cycle number for the whole body. We define this based on the excursion of the tail point. `get_body_cycle_numbers` also excludes partial cycles.
+```{r}
+lampreydata <-
+  lampreydata |> 
+  get_body_cycle_numbers(t, ph_e, point, 20) |> 
+  arrange(t, point)
+
+lampreydata
+```
+
+Now, we can use `group_by` on cycles to find cycle-by-cycle values. Here, we look for the range of the excursion variable `b`. Half of that range is the amplitude, which we can define at each point on the body, and over the four cycles that are present in this trial.
+```{r}
+lampreydata |> 
+  group_by(point, cycle) |> 
+  summarize(amp = (max(b) - min(b)) / 2,
+            smm = mean(smm)) |> 
+  ggplot(aes(x = smm, y = amp, color = cycle)) +
+  geom_path(aes(group = cycle))
 ```
 
