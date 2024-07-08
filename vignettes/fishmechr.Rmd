@@ -23,7 +23,7 @@ library(patchwork)
 
 # Using the Hilbert transform to estimate swimming kinematics
 
-One convenient and relatively robust way to estimate body wavelength, wave speed, and bending frequency involves the use of the Hilbert transform $\mathbf{H}$, a procedure that uses the Fourier transform to estimate a periodic signal that is \qty{90}{\degree} shifted relative to another. In essence, given a cosine signal, the Hilbert transform returns the sine with the same amplitude and frequency. The utility of this operation is that it lets us estimate the ``analytic signal'', a complex-valued signal where the magnitude of the complex number is the amplitude of the wave and the phase angle of the complex number is the phase of the signal.
+One convenient and relatively robust way to estimate body wavelength, wave speed, and bending frequency involves the use of the Hilbert transform $\mathbf{H}$, a procedure that uses the Fourier transform to estimate a periodic signal that is 90deg shifted relative to another. In essence, given a cosine signal, the Hilbert transform returns the sine with the same amplitude and frequency. The utility of this operation is that it lets us estimate the ``analytic signal'', a complex-valued signal where the magnitude of the complex number is the amplitude of the wave and the phase angle of the complex number is the phase of the signal.
 
 If a fish swims using a traveling wave of curvature $\kappa_s$ defined at a position $s$ along the body as
 $$\kappa_s(t) = A_s(t) \cos\left(2\pi \left[ \frac{s}{\lambda} - f t \right] \right)$$
