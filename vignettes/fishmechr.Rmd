@@ -21,6 +21,45 @@ library(tidyverse)
 library(patchwork)
 ```
 
+# Computing kinematic parameters
+
+To compute midline swimming kinematics accurately, follow the steps below.
+
+1. Compute a center location. Ideally this is the center of mass, but it could be approximated in a variety of ways.
+2. Compute the body curvature or excursion relative to a central axis, or both.
+3. Compute the arc length along the curve of the body.
+4. If the points are not consistently at the same arc length, interpolate the points so that each one is at a consistent point on the body.
+5. Compute the curvature or excursion at each point. This should give you a oscillatory signal that represents the traveling wave along the body.
+6. Estimate the phase of the oscillation at each point. You can either detect peaks and zero crossings or use a mathematical technique called the Hilbert transform.
+7. Use temporal and spatial derivatives of the phase to estimate the oscillation frequency, body wavelength, and body wave speed. 
+8. Based on the phase, identify individual undulation cycles. Within each cycle, you can identify the range of body excursion or curvature to compute the amplitude.
+
+## Center location
+
+The center location is a weighted average location. For a midline defined by $x$ and $y$ coordinates $(x_i, y_i)$, there are four main ways to identify the center location.
+
+1. If $m_i$ is the mass of segment located between $(x_i, y_i)$ and $(x_{i+1}, y_{i+1})$, then
+$$ x_{com} = \frac{1}{2 M} \sum_{i=1}^{n-1} m_i \left( x_{i+1} + x_i \right)  $$
+$$ y_{com} = \frac{1}{2 M} \sum_{i=1}^{n-1} m_i \left( y_{i+1} + y_i \right)  $$
+where $M$ is the total mass of the fish. If you know the mass distribution but not the true masses of segments, you could also use $m_i$ as the fraction of the total mass in segment $i$ and $M$ would be 1.
+
+2. If you do not know the mass distribution, then you can approximate $m_i$ in several ways. The best is to use the width and height of the body. If the body, without the fins, has an elliptical cross section, where $w_i$ is the horizontal width and $h_i$ is the dorso-ventral height at point $i$, then the volume of the segment from $(x_i, y_i)$ and $(x_{i+1}, y_{i+1})$ is
+$$ V_i = \pi \Delta s_i \left( w_i h_i + \tfrac{1}{2} \Delta w_i h_i +
+\tfrac{1}{2} \Delta h_i w_i + \tfrac{1}{3} \Delta w_i \Delta h_i \right)$$
+where $\Delta s_i = s_{i+1} - s_i$, $\Delta w_i = w_{i+1} - w_i$, and $\Delta h_i = h_{i+1} - h_i$.
+Then we approximate $m_i \approx \rho V_i$, where $\rho$ is the density of the fish, which we assume here to be constant, so that
+$$ x_{com} = \frac{\sum_{i=1}^{n-1} \left[ V_i \left( x_{i+1} + x_i \right) \right] } 
+{ 2 \sum_{i=1}^{n-1} V_i } $$
+$$ y_{com} = \frac{\sum_{i=1}^{n-1} \left[ V_i \left( y_{i+1} + y_i \right) \right] } 
+{ 2 \sum_{i=1}^{n-1} V_i } $$
+
+3. Often the width is visible from a camera from above or below, but the height is not known. In this case, a reasonable approximation is that $m_i \propto w_i$, so that
+$$ x_{com} = \tfrac{1}{4} \sum_{i=1}^{n-1} \left[ \Delta s_i \left( x_i + x_{i+1} \right) \left( w_i + w_{i+1} \right) \right] $$
+$$ y_{com} = \tfrac{1}{4} \sum_{i=1}^{n-1} \left[ \Delta s_i \left( y_i + y_{i+1} \right) \left( w_i + w_{i+1} \right) \right] $$
+
+4. Choose one point along the body to use as the center. This could be the snout or a point close to the center of mass. This has been called the "stretched-straight center of mass", but tends to give inaccurate estimates of velocity or acceleration.
+
+
 # Using the Hilbert transform to estimate swimming kinematics
 
 One convenient and relatively robust way to estimate body wavelength, wave speed, and bending frequency involves the use of the Hilbert transform $\mathbf{H}$, a procedure that uses the Fourier transform to estimate a periodic signal that is 90deg shifted relative to another. In essence, given a cosine signal, the Hilbert transform returns the sine with the same amplitude and frequency. The utility of this operation is that it lets us estimate the ``analytic signal'', a complex-valued signal where the magnitude of the complex number is the amplitude of the wave and the phase angle of the complex number is the phase of the signal.
@@ -111,6 +150,29 @@ lampreydata |>
   ggplot(aes(x = mxmm, mymm, color = frame, group = frame)) +
   geom_path() +
   coord_fixed()
+```
+
+## Compute arc length
+
+```{r}
+lampreydata <-
+  lampreydata |> 
+  group_by(frame) |>
+  mutate(arclen = arclength(mxmm, mymm)) |> 
+  mutate(width = interpolate_width(fishwidth$s, fishwidth$ammowidth, arclen))
+```
+
+## Compute the center of mass
+
+```{r}
+lampreydata |> 
+  get_center_df(t, arclen, mxmm,mymm, width)
+```
+
+```{r}
+fishwidth |> 
+  ggplot(aes(x = s, y = ammowidth)) +
+  geom_path()
 ```
 
 
