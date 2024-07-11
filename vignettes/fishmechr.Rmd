@@ -25,14 +25,26 @@ library(patchwork)
 
 To compute midline swimming kinematics accurately, follow the steps below.
 
-1. Compute a center location. Ideally this is the center of mass, but it could be approximated in a variety of ways.
-2. Compute the body curvature or excursion relative to a central axis, or both.
-3. Compute the arc length along the curve of the body.
-4. If the points are not consistently at the same arc length, interpolate the points so that each one is at a consistent point on the body.
+1. Compute the arc length along the curve of the body.
+2. If the points are not consistently at the same arc length, interpolate the points so that each one is at a consistent point on the body. It is often useful to do some smoothing as part of this step.
+3. Compute a center location. Ideally this is the center of mass, but it could be approximated in a variety of ways.
+4. Compute the body curvature or excursion relative to a central axis, or both.
 5. Compute the curvature or excursion at each point. This should give you a oscillatory signal that represents the traveling wave along the body.
 6. Estimate the phase of the oscillation at each point. You can either detect peaks and zero crossings or use a mathematical technique called the Hilbert transform.
 7. Use temporal and spatial derivatives of the phase to estimate the oscillation frequency, body wavelength, and body wave speed. 
 8. Based on the phase, identify individual undulation cycles. Within each cycle, you can identify the range of body excursion or curvature to compute the amplitude.
+
+## Arc length
+
+Most kinematic variables are best specified in terms of arc length $s$, the distance along the body from the head to a particular point $i$:
+$$ s_i = \sum_{j=2}^i \left[ (x_j - x_{j-1})^2 + (y_j - y_{j-1})^2 \right] $$
+Using arc length is better than something like the $x$ coordinate for two reasons. First, often a fish does not swim precisely along the $x$ axis, which means that the points would need to be rotated. Second, many fish swim with relatively large amplitude motions, which means that the distance along the curve is larger than the distance along the swimming direction, particularly near the tail where amplitudes are higher.
+
+## Interpolating points for a consistent position
+
+Ideally, we want each point to represent a consistent location on the fish's body. Particularly with fish that do not have clear landmarks along the body, we may be able to mark the middle easily, but at points that may slide along the fish's length. We can use a spline to interpolate points at a consistent location.
+
+Digitized points often have some error. As part of the interpolation process, we can use a smoothing spline to smooth out some of that error.
 
 ## Center location
 
@@ -54,8 +66,8 @@ $$ y_{com} = \frac{\sum_{i=1}^{n-1} \left[ V_i \left( y_{i+1} + y_i \right) \rig
 { 2 \sum_{i=1}^{n-1} V_i } $$
 
 3. Often the width is visible from a camera from above or below, but the height is not known. In this case, a reasonable approximation is that $m_i \propto w_i$, so that
-$$ x_{com} = \tfrac{1}{4} \sum_{i=1}^{n-1} \left[ \Delta s_i \left( x_i + x_{i+1} \right) \left( w_i + w_{i+1} \right) \right] $$
-$$ y_{com} = \tfrac{1}{4} \sum_{i=1}^{n-1} \left[ \Delta s_i \left( y_i + y_{i+1} \right) \left( w_i + w_{i+1} \right) \right] $$
+$$ x_{com} = \frac{\sum_{i=1}^{n} w_i x_i}{\sum_{i=1}^{n} w_i} $$
+$$ y_{com} = \frac{\sum_{i=1}^{n} w_i y_i}{\sum_{i=1}^{n} w_i} $$
 
 4. Choose one point along the body to use as the center. This could be the snout or a point close to the center of mass. This has been called the "stretched-straight center of mass", but tends to give inaccurate estimates of velocity or acceleration.
 
@@ -93,11 +105,6 @@ Similarly, if the signal is noisy, the phase $\hat{\phi}$ will not increase stea
 
 In most programming languages, one should use a function `atan2` to estimate phase (not `atan`), because it gives an angle that ranges around the full circle (rather than 0 to 180 degrees). However, the output of `atan2` will jump (usually from $\pi$ to $-\pi$) as $t$ or $s$ increase. To estimate frequency or wavelength, before performing the derivatives, one should estimate a smoothly increasing phase using a function `unwrap`, which searches for jumps and removes them.
 
-## Arc length
-
-Most kinematic variables are best specified in terms of arc length $s$, the distance along the body from the head to a particular point $i$:
-$$ s_i = \sum_{j=2}^i \left[ (x_j - x_{j-1})^2 + (y_j - y_{j-1})^2 \right] $$
-Using arc length is better than something like the $x$ coordinate for two reasons. First, often a fish does not swim precisely along the $x$ axis, which means that the points would need to be rotated. Second, many fish swim with relatively large amplitude motions, which means that the distance along the curve is larger than the distance along the swimming direction, particularly near the tail where amplitudes are higher.
 
 ## Estimating curvature
 
@@ -158,21 +165,64 @@ lampreydata |>
 lampreydata <-
   lampreydata |> 
   group_by(frame) |>
-  mutate(arclen = arclength(mxmm, mymm)) |> 
+  mutate(arclen = arclength(mxmm, mymm)) 
+```
+
+Here we plot the arc length of a few points along the body. We can see that they're generally in the same location, but not exactly, so we'll need to interpolate so that they're in the same place.
+```{r}
+lampreydata |> 
+  ungroup() |> 
+  filter(point %in% c(5, 10, 18)) |> 
+  ggplot(aes(x = t, y = arclen, color = point)) +
+  geom_point()
+```
+Here's the interpolation.
+```{r}
+lampreydata <- lampreydata |> 
+  interpolate_points_df(arclen, mxmm, mymm, spar = 0.1,
+                        tailmethod = 'extrapolate')
+```
+
+Now the points are always at the same arc length. Sometimes this requires extrapolating to get the tail position.
+```{r}
+lampreydata |> 
+  filter(frame %in% c(10, 20)) |> 
+  mutate(frame = factor(frame)) |> 
+  ggplot(aes(x = mxmm, mymm, color = frame, group = frame)) +
+  geom_point(shape = 10) +
+  geom_path() +
+  geom_point(aes(x = mxmm_s, y = mymm_s), shape = 5) +
+  coord_fixed()
+```
+
+## Get the width
+
+```{r}
+fishwidth |> 
+  ggplot(aes(x = s, y = ammowidth)) +
+  geom_path()
+```
+
+```{r}
+lampreydata <-
+  lampreydata |> 
+  group_by(frame) |> 
   mutate(width = interpolate_width(fishwidth$s, fishwidth$ammowidth, arclen))
 ```
 
 ## Compute the center of mass
 
 ```{r}
-lampreydata |> 
-  get_center_df(t, arclen, mxmm,mymm, width)
-```
+lampreydata <-
+  lampreydata |> 
+  get_center_df(arclen, mxmm,mymm, width=width)
 
-```{r}
-fishwidth |> 
-  ggplot(aes(x = s, y = ammowidth)) +
-  geom_path()
+lampreydata |> 
+  filter(frame %in% c(10, 20, 30, 40, 50)) |> 
+  ggplot(aes(x = mxmm, y = mymm, color = frame)) +
+  geom_path(aes(group = frame)) +
+  geom_point(data = ~filter(.x, point == 1), aes(x = xcom, y = ycom)) +
+  coord_fixed()
 ```
 
 

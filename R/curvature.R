@@ -11,11 +11,103 @@ arclength <- function(x, y)
 {
   assertthat::assert_that(length(x) == length(y))
 
-  s <- rep(0, length(x))
-  ds <- sqrt(diff(x)^2 + diff(y)^2)
-  s[2:length(s)] <- cumsum(ds)
-
+  if (any(!is.finite(x)) | any(!is.finite(y))) {
+    s <- rep(NA, length(x))
+  } else {
+    s <- rep(0, length(x))
+    ds <- sqrt(diff(x)^2 + diff(y)^2)
+    s[2:length(s)] <- cumsum(ds)
+  }
   s
+}
+
+interpolate_points_frame <- function(arclen, x,y, arclen_out,
+                                     spar = 0.1)
+{
+  assertthat::assert_that(length(x) == length(y))
+
+  xs <- numeric(length(x))
+  ys <- numeric(length(y))
+
+  good <- is.finite(x) & is.finite(y)
+
+  if (any(good)) {
+    spx <- smooth.spline(arclen[good], x[good], spar = spar)
+    spy <- smooth.spline(arclen[good], y[good], spar = spar)
+
+    xs[good] = predict(spx, x = arclen_out)$y
+    ys[good] = predict(spy, x = arclen_out)$y
+  }
+
+  xs[!good] <- NA
+  ys[!good] <- NA
+
+  tibble(xs = xs, ys = ys)
+}
+
+interpolate_points_df <- function(.data, arclen, x,y,
+                                  arclen_out = NULL,
+                                  spar = 0.8,
+                                  tailmethod = "extrapolate",
+                                  .suffix = "_s",
+                                  .out = NULL,
+                              .frame = frame, .point = point)
+{
+  assertthat::assert_that(tailmethod %in% c("keep", "extrapolate", "NA"))
+
+    if (missing(.frame)) {
+    .frame <- enquo(.frame)
+    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
+                            msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
+  }
+  if (missing(.point)) {
+    .point <- enquo(.point)
+    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.point)),
+                            msg = "Default column 'point' not present. Use .point to specify the name of the point column")
+  }
+
+  if (is.null(arclen_out)) {
+    arclen_out <-
+      .data |>
+      group_by({{.point}}) |>
+      summarize(s = median({{arclen}}, na.rm = TRUE))
+    arclen_out <- arclen_out$s
+  }
+  assertthat::assert_that(all(is.finite(arclen_out)))
+
+  if (is.null(.out)) {
+    .out = c(paste0(rlang::as_name(enquo(arclen)), .suffix),
+             paste0(rlang::as_name(enquo(x)), .suffix),
+             paste0(rlang::as_name(enquo(y)), .suffix))
+  } else {
+    assertthat::assert_that(length(.out) == 3,
+                            msg = ".out must contain three names, for the arc length, x, and y positions")
+  }
+
+  df <- .data |>
+    group_by({{.frame}}, .add = TRUE) |>
+    mutate(xys = list(interpolate_points_frame({{arclen}}, {{x}},{{y}}, arclen_out, spar)),
+           "{.out[1]}" := arclen_out,
+           "{.out[2]}" := xys[[1]]$xs,
+           "{.out[3]}" := xys[[1]]$ys) |>
+    select(-xys)
+
+  if (tailmethod == "keep") {
+    df <- df |>
+      mutate(
+        "{.out[1]}" := if_else(row_number({{arclen}}) == n(), {{arclen}}, .data[[.out[1]]]),
+        "{.out[2]}" := if_else(row_number({{x}}) == n(), {{x}}, .data[[.out[2]]]),
+        "{.out[3]}" := if_else(row_number({{y}}) == n(), {{y}}, .data[[.out[3]]]))
+  } else if (tailmethod == "NA") {
+    df <- df |>
+      mutate(
+        "{.out[2]}" := if_else(row_number({{x}}) == n() &&
+                                 .data[[.out[1]]] > {{arclen}}, NA, .data[[.out[2]]]),
+        "{.out[3]}" := if_else(row_number({{y}}) == n() &&
+                                 .data[[.out[1]]] > {{arclen}}, NA, .data[[.out[3]]]))
+  }
+
+  df
 }
 
 #' Estimate first or second derivatives for dy/dx.
