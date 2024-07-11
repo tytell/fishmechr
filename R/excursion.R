@@ -76,9 +76,10 @@ get_primary_swimming_axis <- function(x, y, center=TRUE)
 #'   and the perpendicular axis. `b` is useful as the lateral excursion of the
 #'   swimming undulation.
 #' @export
-get_primary_swimming_axis_df <- function(df, t,point, x,y,
+get_primary_swimming_axis_df <- function(df, x,y, .frame=frame, .point=point,
                                          cutoff=NULL, overwrite=TRUE)
 {
+
   newcols <- c("swimaxis_x", "swimaxis_y", "a", "b")
   if (any(newcols %in% colnames(df))) {
     dfname <- "Data frame"
