@@ -179,7 +179,7 @@ lampreydata |>
 Here's the interpolation.
 ```{r}
 lampreydata <- lampreydata |> 
-  interpolate_points_df(arclen, mxmm, mymm, spar = 0.1,
+  interpolate_points_df(arclen, mxmm, mymm, spar = 0.2,
                         tailmethod = 'extrapolate')
 ```
 
@@ -197,10 +197,12 @@ lampreydata |>
 
 ## Get the width
 
+I have digitized the width of an ammocoete from the ventral view. We assume here that the width is the distance from one lateral edge to the other (like a diameter), not the distance from the center to an edge (like a radius). Here it's expressed in terms of body lengths, both along the body and for the width itself.
 ```{r}
 fishwidth |> 
   ggplot(aes(x = s, y = ammowidth)) +
-  geom_path()
+  geom_path() +
+  labs(x = 'Arc length (BL)', y = 'Width (BL)')
 ```
 
 ```{r}
@@ -233,9 +235,8 @@ This computes the curvature by the two different methods.
 lampreydata <-
   lampreydata |> 
   group_by(frame) |> 
-  mutate(smm = arclength(mxmm, mymm),
-         curve_ang = curvature(smm, mxmm, mymm),
-         curve_xy = curvature(smm, mxmm, mymm, method="xy"))
+  mutate(curve_ang = curvature(arclen_s, mxmm_s, mymm_s),
+         curve_xy = curvature(arclen_s, mxmm_s, mymm_s, method="xy"))
 ```
 
 Compare the results. Here they aren't very different, although the "xy" method
@@ -244,7 +245,7 @@ gives very slightly higher peaks.
 lampreydata |> 
   filter(frame %in% c(10, 20)) |> 
   mutate(frame = factor(frame)) |> 
-  ggplot(aes(x = smm, color = frame, group = frame)) +
+  ggplot(aes(x = arclen_s, color = frame, group = frame)) +
   geom_path(aes(y = curve_ang), linetype='solid') +
   geom_path(aes(y = curve_xy), linetype='dashed')
 ```
