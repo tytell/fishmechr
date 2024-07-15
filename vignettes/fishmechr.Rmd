@@ -167,7 +167,7 @@ lampreydata |>
 lampreydata <-
   lampreydata |> 
   group_by(frame) |>
-  mutate(arclen = arclength(mxmm, mymm)) 
+  mutate(arclen0 = arclength(mxmm, mymm)) 
 ```
 
 Here we plot the arc length of a few points along the body. We can see that they're generally in the same location, but not exactly, so we'll need to interpolate so that they're in the same place.
@@ -175,14 +175,15 @@ Here we plot the arc length of a few points along the body. We can see that they
 lampreydata |> 
   ungroup() |> 
   filter(point %in% c(5, 10, 18)) |> 
-  ggplot(aes(x = t, y = arclen, color = point)) +
+  ggplot(aes(x = t, y = arclen0, color = point)) +
   geom_point()
 ```
 Here's the interpolation.
 ```{r}
 lampreydata <- lampreydata |> 
-  interpolate_points_df(arclen, mxmm, mymm, spar = 0.2,
-                        tailmethod = 'extrapolate')
+  interpolate_points_df(arclen0, mxmm, mymm, spar = 0.2,
+                        tailmethod = 'extrapolate',
+                        .out = c(arclen='arclen', xs='mxmm_s', ys='mymm_s'))
 ```
 
 Now the points are always at the same arc length. Sometimes this requires extrapolating to get the tail position.
@@ -219,7 +220,7 @@ lampreydata <-
 ```{r}
 lampreydata <-
   lampreydata |> 
-  get_center_df(arclen, mxmm_s,mymm_s, width=width)
+  get_center_df(arclen0, mxmm_s,mymm_s, width=width)
 
 lampreydata |> 
   filter(frame %in% c(10, 20, 30, 40, 50)) |> 
@@ -237,8 +238,8 @@ This computes the curvature by the two different methods.
 lampreydata <-
   lampreydata |> 
   group_by(frame) |> 
-  mutate(curve_ang = curvature(arclen_s, mxmm_s, mymm_s),
-         curve_xy = curvature(arclen_s, mxmm_s, mymm_s, method="xy"))
+  mutate(curve_ang = curvature(arclen0, mxmm_s, mymm_s),
+         curve_xy = curvature(arclen0, mxmm_s, mymm_s, method="xy"))
 ```
 
 Compare the results. Here they aren't very different, although the "xy" method
@@ -247,7 +248,7 @@ gives very slightly higher peaks.
 lampreydata |> 
   filter(frame %in% c(10, 20)) |> 
   mutate(frame = factor(frame)) |> 
-  ggplot(aes(x = arclen_s, color = frame, group = frame)) +
+  ggplot(aes(x = arclen0, color = frame, group = frame)) +
   geom_path(aes(y = curve_ang), linetype='solid') +
   geom_path(aes(y = curve_xy), linetype='dashed')
 ```
@@ -302,7 +303,7 @@ lampreydata <-
   lampreydata |> 
   group_by(point) |> 
   mutate(ph_c = hilbert_phase(curve_ang),
-         ph_e = hilbert_phase(b))
+         ph_e = hilbert_phase(exc))
 ```
 `hilbert_phase` does a few checks on the results and gives warnings if it finds things that might cause problems.
 * It checks to make sure that most of the input data is not NA. It does not give a warning if all of the input data is NA, only if at least some of the data is not NA.
@@ -346,7 +347,7 @@ lampreydata |>
   filter(frame %in% c(60, 80)) |> 
   group_by(frame) |> 
   mutate(phbody = ph_e) |>
-  ggplot(aes(x = smm, y = phbody, color = frame)) +
+  ggplot(aes(x = arclen, y = phbody, color = frame)) +
   geom_path(aes(group = frame))
 ```
 The apparent discontinuity at $s$ = 50mm is not real. It just reflects the fact that phase goes from $0$ to $2\pi$ and then wraps around back to 0. We get rid of that by using the `unwrap` function, applied across the spatial dimension (equivalently, using `group_by` with time or frame number).
@@ -357,7 +358,7 @@ lampreydata |>
   filter(frame %in% c(60, 80)) |> 
   group_by(frame) |> 
   mutate(phbody = gsignal::unwrap(ph_e)) |>
-  ggplot(aes(x = smm, y = phbody, color = frame)) +
+  ggplot(aes(x = arclen, y = phbody, color = frame)) +
   geom_path(aes(group = frame))
 ```
 

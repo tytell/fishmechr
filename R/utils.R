@@ -101,3 +101,43 @@ check_if_overwrite_columns <- function(df, newcols, overwrite)
     }
   }
 }
+
+check.out <- function(.data, .out, .out_default, overwrite)
+{
+  if (is.null(.out)) {
+    .out <- .out_default
+  } else if (length(.out) < length(.out_default)) {
+    if (is.null(names(.out))) {
+      stop(".out must have ", length(.out_default),
+           "elements or be a named list for specific output columns")
+    }
+    if (!all(names(.out) %in% names(.out_default))) {
+      nout <- names(.out)
+      extra = !(nout %in% names(.out_default))
+
+      nout_str = paste(nout[extra], collapse = ",")
+      warning('Some names in .out (', nout_str, ') are not used')
+    }
+    for (n in names(.out_default)) {
+      if (!(n %in% names(.out))) {
+        .out[[n]] <- .out_default[[n]]
+      }
+    }
+  }
+
+  if (!is.null(names(.out))) {
+    .out <- .out[names(.out_default)]
+  }
+
+  if (any(.out %in% colnames(.data))) {
+    overwritenames <- .out[.out %in% colnames(.data)]
+    overwritestr <- paste(overwritenames, collapse = ',')
+    if (overwrite) {
+      warning("Columns (", overwritestr, ") will be overwritten")
+    } else {
+      warning("Columns (", overwritestr, ") already present in data frame. Stopping.")
+    }
+  }
+
+  .out
+}

@@ -89,41 +89,11 @@ get_primary_swimming_axis_df <- function(.data, t, x,y,
                                          cutoff=NULL, overwrite=TRUE,
                                          check_reasonableness=TRUE)
 {
-  .out_default = c(swimaxis_x='swimaxis_x', swimaxis_y='swimaxis_y',
-                   exc_x='exc_x', exc='exc')
-  if (missing(.out)) {
-    .out = .out_default
-  } else if (length(.out) < length(.out_default)) {
-    if (is.null(names(.out))) {
-      stop(".out must have four elements or be a named list for specific output columns")
-    }
-    if (!all(names(.out) %in% names(.out_default))) {
-      nout <- names(.out)
-      extra = !(nout %in% names(.out_default))
+  .out <- check.out(.data, .out,
+                    .out_default = c(swimaxis_x='swimaxis_x', swimaxis_y='swimaxis_y',
+                                     exc_x='exc_x', exc='exc'),
+                    overwrite=overwrite)
 
-      nout_str = paste(nout[extra], collapse = ",")
-      warning('Some names in .out (', nout_str, ') are not used')
-    }
-    for (n in names(.out_default)) {
-      if (!(n %in% names(.out))) {
-        .out[[n]] <- .out_default[[n]]
-      }
-    }
-  }
-
-  if (!is.null(names(.out))) {
-    .out <- c(.out[['swimaxis_x']], .out[['swimaxis_y']],
-              .out[['exc_x']], .out[['exc']])
-  }
-
-  if (any(.out %in% colnames(.data))) {
-    dfname <- "Data frame"
-    if (overwrite) {
-      warning(dfname, " has columns that are assigned in 'get_primary_swimming_axis_df'. Overwriting")
-    } else {
-      stop(dfname, " has columns that are assigned in 'get_primary_swimming_axis_df'. Stopping")
-    }
-  }
   .frame <- enquo(.frame)
   if (missing(.frame)) {
     assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),

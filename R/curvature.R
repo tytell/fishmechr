@@ -51,11 +51,22 @@ interpolate_points_df <- function(.data, arclen, x,y,
                                   tailmethod = "extrapolate",
                                   .suffix = "_s",
                                   .out = NULL,
+                                  overwrite = TRUE,
                               .frame = frame, .point = point)
 {
   assertthat::assert_that(tailmethod %in% c("keep", "extrapolate", "NA"))
 
-    if (missing(.frame)) {
+  if (is.null(.out)) {
+    .out = c(paste0(rlang::as_name(enquo(arclen)), .suffix),
+             paste0(rlang::as_name(enquo(x)), .suffix),
+             paste0(rlang::as_name(enquo(y)), .suffix))
+  } else {
+    .out <- check.out(.data, .out,
+                      .out_default = c(arclen='arclen_s', xs='xs', ys='ys'),
+                      overwrite=overwrite)
+  }
+
+  if (missing(.frame)) {
     .frame <- enquo(.frame)
     assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
                             msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
@@ -74,15 +85,6 @@ interpolate_points_df <- function(.data, arclen, x,y,
     arclen_out <- arclen_out$s
   }
   assertthat::assert_that(all(is.finite(arclen_out)))
-
-  if (is.null(.out)) {
-    .out = c(paste0(rlang::as_name(enquo(arclen)), .suffix),
-             paste0(rlang::as_name(enquo(x)), .suffix),
-             paste0(rlang::as_name(enquo(y)), .suffix))
-  } else {
-    assertthat::assert_that(length(.out) == 3,
-                            msg = ".out must contain three names, for the arc length, x, and y positions")
-  }
 
   df <- .data |>
     group_by({{.frame}}, .add = TRUE) |>
