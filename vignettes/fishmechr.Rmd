@@ -220,7 +220,7 @@ lampreydata <-
 ```{r}
 lampreydata <-
   lampreydata |> 
-  get_center_df(arclen0, mxmm_s,mymm_s, width=width)
+  get_midline_center_df(arclen0, mxmm_s,mymm_s, width=width)
 
 lampreydata |> 
   filter(frame %in% c(10, 20, 30, 40, 50)) |> 
@@ -381,17 +381,17 @@ w <-
   filter(frame %in% c(50)) |> 
   group_by(frame) |> 
   mutate(ph2 = gsignal::unwrap(ph_e),
-         wavelen_deriv = get_wavelength(smm, ph2, method="deriv",
+         wavelen_deriv = get_wavelength(arclen, ph2, method="deriv",
                                    ignore_s = \(s) s < 30),
-         wavelen_slope = get_wavelength(smm, ph2, method="slope",
+         wavelen_slope = get_wavelength(arclen, ph2, method="slope",
                                    ignore_s = \(s) s < 30),
-         wavelen_cycle = get_wavelength(smm, ph2, method="cycle",
+         wavelen_cycle = get_wavelength(arclen, ph2, method="cycle",
                                    ignore_s = \(s) s < 30),
-         wavelen_halfcycle = get_wavelength(smm, ph2, method="halfcycle",
+         wavelen_halfcycle = get_wavelength(arclen, ph2, method="halfcycle",
                                    ignore_s = \(s) s < 30))
 w |> 
   pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
-  ggplot(aes(x = smm, y = wavelen, color = method, shape = method)) +
+  ggplot(aes(x = arclen, y = wavelen, color = method, shape = method)) +
   geom_point()
 ```
 Here, you can see that all of the methods give similar results, but there are different numbers of values and different resolution along the body. We suggest the "halfcycle" option as a good, relatively robust compromise.
@@ -401,13 +401,13 @@ lampreydata |>
   group_by(frame) |> 
   mutate(phbody_e = gsignal::unwrap(ph_e),
          phbody_c = gsignal::unwrap(ph_c),
-         wavelen_exc = get_wavelength(smm, phbody_e, method="halfcycle",
+         wavelen_exc = get_wavelength(arclen, phbody_e, method="halfcycle",
                                     ignore_s = \(s) s < 30),
-         wavelen_curve = get_wavelength(smm, phbody_c, method="halfcycle",
+         wavelen_curve = get_wavelength(arclen, phbody_c, method="halfcycle",
                                     ignore_s = \(s) s < 30)) |> 
   pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
   ggplot(aes(x = t)) +
-  geom_point(aes(y = wavelen, color = smm, shape=method)) +
+  geom_point(aes(y = wavelen, color = arclen, shape=method)) +
   scale_shape_manual(values = c(15, 4))
 
 ```
@@ -418,13 +418,13 @@ lampreydata |>
   group_by(frame) |> 
   mutate(phbody_e = gsignal::unwrap(ph_e),
          phbody_c = gsignal::unwrap(ph_c),
-         wavelen_exc = get_wavelength(smm, phbody_e, method="halfcycle",
+         wavelen_exc = get_wavelength(arclen, phbody_e, method="halfcycle",
                                     ignore_s = \(s) s < 30),
-         wavelen_curve = get_wavelength(smm, phbody_c, method="halfcycle",
+         wavelen_curve = get_wavelength(arclen, phbody_c, method="halfcycle",
                                     ignore_s = \(s) s < 30)) |> 
   pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
-  ggplot(aes(x = smm)) +
-  geom_point(aes(y = wavelen, color = smm, shape=method)) +
+  ggplot(aes(x = arclen)) +
+  geom_point(aes(y = wavelen, color = arclen, shape=method)) +
   scale_shape_manual(values = c(15, 4)) +
   facet_wrap(~method)
 
@@ -447,9 +447,9 @@ Now, we can use `group_by` on cycles to find cycle-by-cycle values. Here, we loo
 ```{r}
 lampreydata |> 
   group_by(point, cycle) |> 
-  summarize(amp = (max(b) - min(b)) / 2,
-            smm = mean(smm)) |> 
-  ggplot(aes(x = smm, y = amp, color = cycle)) +
+  summarize(amp = (max(exc) - min(exc)) / 2,
+            arclen = mean(arclen)) |> 
+  ggplot(aes(x = arclen, y = amp, color = cycle)) +
   geom_path(aes(group = cycle))
 ```
 

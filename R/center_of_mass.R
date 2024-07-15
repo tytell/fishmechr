@@ -1,17 +1,59 @@
-get_center_df <- function(.data, arclen, x, y, mass,width,height,
-                          .out = c('xcom', 'ycom'),
+#' Gets the center of a midline for many midlines in a data frame
+#'
+#' Estimates the center of a midline based on mass distribution, volume distribution,
+#' or body width.
+#'
+#' Given a mass distribution, it produces an estimates of the true center of mass.
+#' If given the body width and height, it assumes that the body has an oval cross
+#' section with varying width and height, and it estimates the volume distribution.
+#' This method will give a good estimate of the center of mass if the body has
+#' close to uniform density. If given just the width, it uses the width to
+#' estimate a weight average centroid position.
+#'
+#' @param .data Data frame containing the midlines.
+#' @param arclen The column containing the arc length. See [arclength()]
+#' @param x,y Columns containing the x and y coordinates of the midline. There
+#'   should be N points.
+#' @param mass (optional) Column containing the mass of each segment, with N-1
+#'   segments.
+#' @param width (optional) Column containing the horizontal plane width of the
+#'   body at each midline point (N points)
+#' @param height (optional) Column containing the dorso-ventral height of the
+#'   body at each midline point (N points)
+#' @param .out Names of the output columns. Needs to have two elements specifying
+#'   the names for the x and y coordinates of center position. Or it can be a named
+#'   list containing at least some of the elements `xctr` and `yctr`. If the
+#'   return elements aren't in the named list, the defaults are 'xcom' and
+#'   'ycom')
+#' @param .frame,.point Columns identifying frames and points (defaults are `frame`
+#'   and `point`)
+#' @param cutoff (optional) If this parameter is included, smooth the swimming
+#'   axis data with a low-pass filter with a cutoff at this frequency.
+#' @param method 'mutate' or 'summarize'. If summarize, returns one center position
+#'   for each frame. If mutate, returns a same center position repeated for
+#'   each point in a frame.
+#' @param overwrite TRUE or FALSE to overwrite existing columns, if present.
+#'
+#' @returns A data frame containing the original variables along with
+#' * xcom, ycom (or names as specified in `.out`). The center of each midline
+#'   in each frame.
+#' @export
+get_midline_center_df <- function(.data, arclen, x, y, mass,width,height,
+                          .out = NULL,
                           .frame = frame, .point = point,
-                          method = "mutate")
+                          method = "mutate",
+                          overwrite = TRUE)
 {
   assertthat::assert_that(method %in% c("mutate", "summarize", "summarise"))
-  assertthat::assert_that(length(.out) == 2,
-                          msg = ".out must contain two names, for the x and y center positions")
 
+  .out <- check.out(.data, .out, .out_default = c(xctr = 'xcom', yctr = 'ycom'))
+
+  .frame <- enquo(.frame)
   if (missing(.frame)) {
-    .frame <- enquo(.frame)
     assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
                             msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
   }
+  .point <- enquo(.point)
   if (missing(.point)) {
     .point <- enquo(.point)
   }
@@ -26,7 +68,7 @@ get_center_df <- function(.data, arclen, x, y, mass,width,height,
     mass <- enquo(mass)
 
     .data <- .data |>
-      group_by({{.frame}}, .add = TRUE) |>
+      group_by(!!.frame, .add = TRUE) |>
       fcn(M = sum(!!mass, na.rm = TRUE),
           "{.out[1]}" := sum(!!mass * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*M),
           "{.out[2]}" := sum(!!mass * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*M)) |>
@@ -38,7 +80,7 @@ get_center_df <- function(.data, arclen, x, y, mass,width,height,
     height <- enquo(height)
 
     .data <- .data |>
-      group_by({{.frame}}, .add = TRUE) |>
+      group_by(!!.frame, .add = TRUE) |>
       fcn(ds = lead({{arclen}}) - {{arclen}},
           dw = lead(!!width) - !!width,
           dh = lead(!!height) - !!height,
@@ -54,7 +96,7 @@ get_center_df <- function(.data, arclen, x, y, mass,width,height,
     width <- enquo(width)
 
     .data <- .data |>
-      group_by({{.frame}}, .add = TRUE) |>
+      group_by(!!.frame, .add = TRUE) |>
       fcn(sumw = sum(!!width, na.rm=TRUE),
           "{.out[1]}" := sum({{x}} * !!width) / sumw,
           "{.out[2]}" := sum({{y}} * !!width) / sumw) |>
@@ -62,14 +104,14 @@ get_center_df <- function(.data, arclen, x, y, mass,width,height,
   } else {
     message("Estimating center of mass as the centroid of x and y")
     .data <- .data |>
-      group_by({{.frame}}) |>
+      group_by(!!.frame) |>
       fcn("{.out[1]}" := mean({{x}}, na.rm = TRUE),
           "{.out[2]}" := mean({{y}}, na.rm = TRUE))
   }
 
   if (method == "mutate") {
     .data <- .data |>
-      ungroup({{.frame}})
+      ungroup(!!.frame)
   }
 
   .data
