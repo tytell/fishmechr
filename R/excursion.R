@@ -60,12 +60,19 @@ get_primary_swimming_axis <- function(x, y, center=TRUE)
 #' Then optionally smooths the axis using a Butterworth filter, and then
 #' projects the midlines on to the new time-varying axes.
 #'
-#' @param df Data frame containing the midline data
+#' @param .data Data frame containing the midline data
 #' @param t Column containing the time data. If a cutoff frequency is passed in,
 #'   then this variable will be used to get the sampling frequency.
-#' @param point Column containing the point identification.
 #' @param x,y Columns containing the x and y coordinates of each point along
 #'   the midline.
+#' @param .out Names of the output columns. Needs to have four elements specifying
+#'   the names for the x and y coordinates of the swim axis and the parallel and
+#'   perpendicular components of the excursion, in that order. Or it can be a named
+#'   list containing at least some of the elements `swimaxis_x`, `swimaxis_y`, `exc_x`,
+#'   `exc`, in any order. If the return elements aren't in the named list, the
+#'   defaults are 'swimaxis_x', 'swimaxis_y', 'exc_x', and 'exc_y')
+#' @param .frame,.point Columns identifying frames and points (defaults are `frame`
+#'   and `point`)
 #' @param cutoff (optional) If this parameter is included, smooth the swimming
 #'   axis data with a low-pass filter with a cutoff at this frequency.
 #'
@@ -76,12 +83,40 @@ get_primary_swimming_axis <- function(x, y, center=TRUE)
 #'   and the perpendicular axis. `b` is useful as the lateral excursion of the
 #'   swimming undulation.
 #' @export
-get_primary_swimming_axis_df <- function(df, x,y, .frame=frame, .point=point,
-                                         cutoff=NULL, overwrite=TRUE)
+get_primary_swimming_axis_df <- function(.data, t, x,y,
+                                         .out = NULL,
+                                         .frame=frame, .point=point,
+                                         cutoff=NULL, overwrite=TRUE,
+                                         check_reasonableness=TRUE)
 {
+  .out_default = c(swimaxis_x='swimaxis_x', swimaxis_y='swimaxis_y',
+                   exc_x='exc_x', exc='exc')
+  if (missing(.out)) {
+    .out = .out_default
+  } else if (length(.out) < length(.out_default)) {
+    if (is.null(names(.out))) {
+      stop(".out must have four elements or be a named list for specific output columns")
+    }
+    if (!all(names(.out) %in% names(.out_default))) {
+      nout <- names(.out)
+      extra = !(nout %in% names(.out_default))
 
-  newcols <- c("swimaxis_x", "swimaxis_y", "a", "b")
-  if (any(newcols %in% colnames(df))) {
+      nout_str = paste(nout[extra], collapse = ",")
+      warning('Some names in .out (', nout_str, ') are not used')
+    }
+    for (n in names(.out_default)) {
+      if (!(n %in% names(.out))) {
+        .out[[n]] <- .out_default[[n]]
+      }
+    }
+  }
+
+  if (!is.null(names(.out))) {
+    .out <- c(.out[['swimaxis_x']], .out[['swimaxis_y']],
+              .out[['exc_x']], .out[['exc']])
+  }
+
+  if (any(.out %in% colnames(.data))) {
     dfname <- "Data frame"
     if (overwrite) {
       warning(dfname, " has columns that are assigned in 'get_primary_swimming_axis_df'. Overwriting")
@@ -89,15 +124,41 @@ get_primary_swimming_axis_df <- function(df, x,y, .frame=frame, .point=point,
       stop(dfname, " has columns that are assigned in 'get_primary_swimming_axis_df'. Stopping")
     }
   }
-  df <- df |>
-    rename(t = {{t}},
-           pt = {{point}})
+  .frame <- enquo(.frame)
+  if (missing(.frame)) {
+    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
+                            msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
+  }
+  .point <- enquo(.point)
+  if (missing(.point)) {
+    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.point)),
+                            msg = "Default column 'point' not present. Use .point to specify the name of the point column")
+  }
 
+  if (check_reasonableness) {
+    centering <-
+      .data |>
+      group_by(!!.frame) |>
+      summarize(
+        xctr = mean({{x}}, na.rm = TRUE),
+        xsd = sd({{x}}, na.rm = TRUE),
+        yctr = mean({{y}}, na.rm = TRUE),
+        ysd = sd({{y}}, na.rm = TRUE)
+        ) |>
+      summarize(notcenterx = sum(xctr > xsd, na.rm = TRUE) / n(),
+                notcentery = sum(yctr > ysd, na.rm = TRUE) / n())
+
+    if (centering$notcenterx > 0.1 ||
+        centering$notcentery > 0.1) {
+      warning("Many frames seem not to be centered around zero. Did you remember to subtract the center of mass?")
+    }
+  }
   # run across all of the frames
   swimaxis <-
-    df |>
-    group_by(t) |>
-    summarize(swimaxis = get_primary_swimming_axis({{x}},{{y}})) |>
+    .data |>
+    group_by(!!.frame, .add = TRUE) |>
+    summarize(swimaxis = get_primary_swimming_axis({{x}},{{y}}),
+              t = first({{t}})) |>
     unnest(swimaxis)
 
   # get the sampling rate
@@ -109,7 +170,6 @@ get_primary_swimming_axis_df <- function(df, x,y, .frame=frame, .point=point,
     filt <- build_filter(hi = cutoff, 1/dt)
 
     swimaxis <- swimaxis |>
-      ungroup() |>
       mutate(swimaxis_x0 = swimaxis_x,
              swimaxis_y0 = swimaxis_y,
              across(c(swimaxis_x, swimaxis_y), \(x) apply_filter(filt, x)))
@@ -122,46 +182,34 @@ get_primary_swimming_axis_df <- function(df, x,y, .frame=frame, .point=point,
       select(-swimaxis_mag)
   } else {
     swimaxis <- swimaxis |>
-      ungroup() |>
       mutate(swimaxis_x0 = swimaxis_x,
              swimaxis_y0 = swimaxis_y)
   }
+  swimaxis <- swimaxis |>
+    rename("{.out[1]}" := swimaxis_x,
+           "{.out[2]}" := swimaxis_y)
 
   # the swimming axis is defined once per time, but we need to repeat it for
   # each point along the body, so we use a left_join to repeat the values
   ab <-
     left_join(
-    df |>
-      ungroup() |>
-      select(t, pt, {{x}}, {{y}}),
+    .data |>
+      ungroup(!!.frame) |>
+      select(!!.frame, {{.point}}, {{x}}, {{y}}),
     swimaxis,
-    by = "t")
+    by = rlang::as_name(.frame))
 
   # then this centers each midline and projects them on to the swimming axis
   # and the perpendicular axis
   ab <-
     ab |>
-    mutate(x_ctr = {{x}} - swimaxis_xctr,
-           y_ctr = {{y}} - swimaxis_yctr,
-           a = x_ctr * swimaxis_x + y_ctr * swimaxis_y,
-           b = -y_ctr * swimaxis_x + x_ctr * swimaxis_y) |>
-    select(t, pt, a,b, swimaxis_x, swimaxis_y,
-           swimaxis_xctr, swimaxis_yctr)
+    mutate("{.out[3]}" := {{x}} * .data[[.out[1]]] + {{y}} * .data[[.out[2]]],
+           "{.out[4]}" := -{{y}} * .data[[.out[1]]] + {{x}} * .data[[.out[2]]]) |>
+    select(any_of(.out), !!.frame, {{.point}})
 
-  ctrnames <- c(paste0(rlang::as_name(enquo(x)), '_ctr'),
-                paste0(rlang::as_name(enquo(y)), '_ctr'))
-
-  # and join it back up with the original data frame, renaming variables back
-  # to their original names
   left_join(
-    df |> select(-any_of(c("a", "b", "swimaxis_x", "swimaxis_y",
-                                   "swimaxis_xctr", "swimaxis_yctr"))),
+    .data |> select(-any_of(.out)),
     ab,
-    by = c("t", "pt")
-    ) |>
-    select(-any_of(ctrnames)) |>
-    rename("{{t}}" := t,
-           "{{point}}" := pt,
-           "{{x}}_ctr" := swimaxis_xctr,
-           "{{y}}_ctr" := swimaxis_yctr)
+    by = c(rlang::as_name(.frame), rlang::as_name(.point))
+    )
 }
