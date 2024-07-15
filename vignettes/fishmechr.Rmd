@@ -29,24 +29,23 @@ To compute midline swimming kinematics accurately, follow the steps below.
 2. If the points are not consistently at the same arc length, interpolate the points so that each one is at a consistent point on the body. It is often useful to do some smoothing as part of this step.
 3. Compute a center location. Ideally this is the center of mass, but it could be approximated in a variety of ways.
 4. Compute the body curvature or excursion relative to a central axis, or both.
-5. Compute the curvature or excursion at each point. This should give you a oscillatory signal that represents the traveling wave along the body.
-6. Estimate the phase of the oscillation at each point. You can either detect peaks and zero crossings or use a mathematical technique called the Hilbert transform.
-7. Use temporal and spatial derivatives of the phase to estimate the oscillation frequency, body wavelength, and body wave speed. 
-8. Based on the phase, identify individual undulation cycles. Within each cycle, you can identify the range of body excursion or curvature to compute the amplitude.
+5. Estimate the phase of the oscillation at each point. You can either detect peaks and zero crossings or use a mathematical technique called the Hilbert transform.
+6. Use temporal and spatial derivatives of the phase to estimate the oscillation frequency, body wavelength, and body wave speed. 
+7. Based on the phase, identify individual undulation cycles. Within each cycle, you can identify the range of body excursion or curvature to compute the amplitude.
 
-## Arc length
+## 1. Compute arc length
 
 Most kinematic variables are best specified in terms of arc length $s$, the distance along the body from the head to a particular point $i$:
 $$ s_i = \sum_{j=2}^i \left[ (x_j - x_{j-1})^2 + (y_j - y_{j-1})^2 \right] $$
 Using arc length is better than something like the $x$ coordinate for two reasons. First, often a fish does not swim precisely along the $x$ axis, which means that the points would need to be rotated. Second, many fish swim with relatively large amplitude motions, which means that the distance along the curve is larger than the distance along the swimming direction, particularly near the tail where amplitudes are higher.
 
-## Interpolating points for a consistent position
+## 2. Interpolate points for a consistent position
 
 Ideally, we want each point to represent a consistent location on the fish's body. Particularly with fish that do not have clear landmarks along the body, we may be able to mark the middle easily, but at points that may slide along the fish's length. We can use a spline to interpolate points at a consistent location.
 
 Digitized points often have some error. As part of the interpolation process, we can use a smoothing spline to smooth out some of that error.
 
-## Center location
+## 3. Estimate a center location
 
 The center location is a weighted average location. For a midline defined by $x$ and $y$ coordinates $(x_i, y_i)$, there are four main ways to identify the center location.
 
@@ -71,6 +70,38 @@ $$ y_{com} = \frac{\sum_{i=1}^{n} w_i y_i}{\sum_{i=1}^{n} w_i} $$
 
 4. Choose one point along the body to use as the center. This could be the snout or a point close to the center of mass. This has been called the "stretched-straight center of mass", but tends to give inaccurate estimates of velocity or acceleration.
 
+## 4. Estimate curvature or lateral excursion
+
+### Curvature
+
+The 2D curvature $\kappa$ of the midline in the horizontal plane is often a useful variable to compute. It can be thought of in two different ways. First, it is the inverse of the radius of curvature: the radius of a circle drawn through three successive points. The smaller the radius of curvature, the sharper the body bend, and the larger the value of $\kappa$. This estimate for curvature is defined by the following equation
+$$ \kappa = \left[ \frac{\partial x}{\partial s} \frac{\partial^2 y}{\partial s^2} - \frac{\partial y}{\partial s} \frac{\partial^2 x}{\partial s^2} \right] \left[ \left( \frac{\partial x}{\partial s} \right)^2 + \left( \frac{\partial y}{\partial s} \right)^2 \right]^{-3/2} $$
+
+Second, it is the spatial derivative of the angle of each segment. If a segment at arc length $s$ has an angle $\theta$ to the horizontal axis, then the curvature is
+$$ \kappa = \frac{\partial \theta}{\partial s} $$
+The angle for segment $i$ is $\theta_i = \tan^{-1}(y_{i+1} - y_i, x_{i+1} - x_i)$.
+
+Although both formulas are mathematically equivalent, they have slightly different properties depending on the measurement error on the $x$ and $y$ positions.
+
+## Lateral excursion
+
+One can also estimate the body phase, and then the wavelength and wave speed, based on the excursion of the body relative to a primary axis. We suggest using the singular value decomposition (SVD) to estimate the primary axis, then using a low-pass filter to remove any oscillations at the tail beat frequency or higher. If you have a matrix of $x$ and $y$ coordinates of points along the body at a specific time, $\mathbf{X}$
+$$ \mathbf{X}_{n\times2} = 
+\begin{pmatrix} 
+x_1 & y_1 \\
+x_2 & y_2 \\
+\vdots & \vdots \\
+x_n & y_n
+\end{pmatrix} $$
+where the subscript indicates the size of the matrix ($n$ points along the body by 2). 
+
+First, center each axis by subtracting the location of the center of mass or the mean of each column, to produce a matrix $\mathbf{X^C}$, centered around 0. Then the singular value decomposition allows you to write the matrix in the form
+$$ \mathbf{X}^C_{n\times2} = \mathbf{U}_{n\times n} \mathbf{\Sigma}_{n \times 2} \mathbf{V}_{2 \times 2}^T. $$
+The matrix $\mathbf{V}_{2 \times 2}$ then represents the principal axes of the body in that frame. The matrix can be estimated at each time point, to produce a time-varying matrix $\mathbf{V}(t)$.
+
+Assuming the amplitude is relatively small, the first column of $\mathbf{V}$ represents a unit vector pointing along the primary axis of the body (which we call $\mathbf{\hat{a}}(t)$ and the second column is a unit vector normal to the primary axis. 
+
+We suggest using a low pass filter with a cutoff frequency below the tail beat frequency to smooth the components of the $\mathbf{\hat{a}}(t)$ vector, making sure to normalize it after smoothing. See implementation details below.
 
 # Using the Hilbert transform to estimate swimming kinematics
 
@@ -106,36 +137,7 @@ Similarly, if the signal is noisy, the phase $\hat{\phi}$ will not increase stea
 In most programming languages, one should use a function `atan2` to estimate phase (not `atan`), because it gives an angle that ranges around the full circle (rather than 0 to 180 degrees). However, the output of `atan2` will jump (usually from $\pi$ to $-\pi$) as $t$ or $s$ increase. To estimate frequency or wavelength, before performing the derivatives, one should estimate a smoothly increasing phase using a function `unwrap`, which searches for jumps and removes them.
 
 
-## Estimating curvature
 
-The 2D curvature $\kappa$ of the midline in the horizontal plane is often a useful variable to compute. It can be thought of in two different ways. First, it is the inverse of the radius of curvature: the radius of a circle drawn through three successive points. The smaller the radius of curvature, the sharper the body bend, and the larger the value of $\kappa$. This estimate for curvature is defined by the following equation
-$$ \kappa = \left[ \frac{\partial x}{\partial s} \frac{\partial^2 y}{\partial s^2} - \frac{\partial y}{\partial s} \frac{\partial^2 x}{\partial s^2} \right] \left[ \left( \frac{\partial x}{\partial s} \right)^2 + \left( \frac{\partial y}{\partial s} \right)^2 \right]^{-3/2} $$
-
-Second, it is the spatial derivative of the angle of each segment. If a segment at arc length $s$ has an angle $\theta$ to the horizontal axis, then the curvature is
-$$ \kappa = \frac{\partial \theta}{\partial s} $$
-The angle for segment $i$ is $\theta_i = \tan^{-1}(y_{i+1} - y_i, x_{i+1} - x_i)$.
-
-Although both formulas are mathematically equivalent, they have slightly different properties depending on the measurement error on the $x$ and $y$ positions.
-
-## Estimating lateral excursion
-
-One can also estimate the body phase, and then the wavelength and wave speed, based on the excursion of the body relative to a primary axis. We suggest using the singular value decomposition (SVD) to estimate the primary axis, then using a low-pass filter to remove any oscillations at the tail beat frequency or higher. If you have a matrix of $x$ and $y$ coordinates of points along the body at a specific time, $\mathbf{X}$
-$$ \mathbf{X}_{n\times2} = 
-\begin{pmatrix} 
-x_1 & y_1 \\
-x_2 & y_2 \\
-\vdots & \vdots \\
-x_n & y_n
-\end{pmatrix} $$
-where the subscript indicates the size of the matrix ($n$ points along the body by 2). 
-
-First, center each axis by subtracting the location of the center of mass or the mean of each column, to produce a matrix $\mathbf{X^C}$, centered around 0. Then the singular value decomposition allows you to write the matrix in the form
-$$ \mathbf{X}^C_{n\times2} = \mathbf{U}_{n\times n} \mathbf{\Sigma}_{n \times 2} \mathbf{V}_{2 \times 2}^T. $$
-The matrix $\mathbf{V}_{2 \times 2}$ then represents the principal axes of the body in that frame. The matrix can be estimated at each time point, to produce a time-varying matrix $\mathbf{V}(t)$.
-
-Assuming the amplitude is relatively small, the first column of $\mathbf{V}$ represents a unit vector pointing along the primary axis of the body (which we call $\mathbf{\hat{a}}(t)$ and the second column is a unit vector normal to the primary axis. 
-
-We suggest using a low pass filter with a cutoff frequency below the tail beat frequency to smooth the components of the $\mathbf{\hat{a}}(t)$ vector, making sure to normalize it after smoothing. See implementation details below.
 
 # Example analysis of a lamprey data set
 
@@ -217,11 +219,11 @@ lampreydata <-
 ```{r}
 lampreydata <-
   lampreydata |> 
-  get_center_df(arclen, mxmm,mymm, width=width)
+  get_center_df(arclen, mxmm_s,mymm_s, width=width)
 
 lampreydata |> 
   filter(frame %in% c(10, 20, 30, 40, 50)) |> 
-  ggplot(aes(x = mxmm, y = mymm, color = frame)) +
+  ggplot(aes(x = mxmm_s, y = mymm_s, color = frame)) +
   geom_path(aes(group = frame)) +
   geom_point(data = ~filter(.x, point == 1), aes(x = xcom, y = ycom)) +
   coord_fixed()
@@ -262,19 +264,10 @@ lampreydata |>
 
 This extracts the central swimming axis.
 ```{r}
-swimaxis <-
-    lampreydata |>
-    group_by(t) |>
-    summarize(swimaxis = get_primary_swimming_axis(mxmm,mymm)) |> 
-    unnest(swimaxis)
-
-swimaxis
-```
-
-
-```{r}
 lampreydata <- lampreydata |> 
-  get_primary_swimming_axis_df(t,point, mxmm,mymm)
+  mutate(mxmm_ctr = mxmm_s - xcom,
+         mymm_ctr = mymm_s - ycom) |> 
+  get_primary_swimming_axis_df(t, mxmm_ctr, mymm_ctr, .frame=frame)
 ```
 
 ```{r}
@@ -282,11 +275,12 @@ lampreydata |>
   filter(frame %in% c(10, 20, 30)) |> 
   ggplot(aes(x = mxmm, y = mymm, color = frame)) +
   geom_path(aes(group = frame)) +
-  geom_point(aes(x = mxmm_ctr, y = mymm_ctr), color='red') +
   geom_segment(data = ~ filter(.x, point == 20), 
-               aes(x = mxmm_ctr, y = mymm_ctr, 
-                   xend = mxmm_ctr - 50*swimaxis_x, 
-                   yend = mymm_ctr - 50*swimaxis_y)) +
+               aes(x = xcom, y = ycom, 
+                   xend = xcom - 50*swimaxis_x, 
+                   yend = ycom - 50*swimaxis_y)) +
+  geom_point(data = ~ filter(.x, point == 20), 
+               aes(x = xcom, y = ycom), color = 'red') +
   facet_grid(frame ~ .) +
   coord_fixed()
 ```
@@ -296,7 +290,7 @@ Similar to curvature, we can compute phases based on the lateral excursions (`b`
 lampreydata |> 
   filter(point %in% c(10, 18)) |>
   mutate(point = factor(point)) |> 
-  ggplot(aes(x = t, y = b, color = point)) +
+  ggplot(aes(x = t, y = exc, color = point)) +
   geom_path()
 ```
 
