@@ -15,7 +15,8 @@ LazyData: true
 Imports: 
     assertthat,
     dplyr,
-    gsignal
+    gsignal,
+    pracma
 Suggests: 
     knitr,
     rmarkdown
