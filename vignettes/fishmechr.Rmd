@@ -83,7 +83,7 @@ The angle for segment $i$ is $\theta_i = \tan^{-1}(y_{i+1} - y_i, x_{i+1} - x_i)
 
 Although both formulas are mathematically equivalent, they have slightly different properties depending on the measurement error on the $x$ and $y$ positions.
 
-## Lateral excursion
+### Lateral excursion
 
 One can also estimate the body phase, and then the wavelength and wave speed, based on the excursion of the body relative to a primary axis. We suggest using the singular value decomposition (SVD) to estimate the primary axis, then using a low-pass filter to remove any oscillations at the tail beat frequency or higher. If you have a matrix of $x$ and $y$ coordinates of points along the body at a specific time, $\mathbf{X}$
 $$ \mathbf{X}_{n\times2} = 
@@ -103,38 +103,53 @@ Assuming the amplitude is relatively small, the first column of $\mathbf{V}$ rep
 
 We suggest using a low pass filter with a cutoff frequency below the tail beat frequency to smooth the components of the $\mathbf{\hat{a}}(t)$ vector, making sure to normalize it after smoothing. See implementation details below.
 
-# Using the Hilbert transform to estimate swimming kinematics
+## 5. Estimate phase
 
-One convenient and relatively robust way to estimate body wavelength, wave speed, and bending frequency involves the use of the Hilbert transform $\mathbf{H}$, a procedure that uses the Fourier transform to estimate a periodic signal that is 90deg shifted relative to another. In essence, given a cosine signal, the Hilbert transform returns the sine with the same amplitude and frequency. The utility of this operation is that it lets us estimate the ``analytic signal'', a complex-valued signal where the magnitude of the complex number is the amplitude of the wave and the phase angle of the complex number is the phase of the signal.
+To estimate the undulation frequency, body wavelength, and wave speed, consider a simple equation for the midline. Fish swim using a traveling wave of curvature $\kappa_s$ (or lateral excursion) defined at an arc length $s$ along the body as
+$$\kappa(s, t) = A(s) \cos\left(2\pi \left[ \frac{s}{\lambda} - f t \right] \right)$$
+where $A(s)$ is the wave amplitude, $k$ is the wave length, $f$ is the oscillation frequency, and $t$ is time. In this case, the phase of the oscillation $\phi(s, t)$ at a particular point along the body is approximately equal to the argument of the cosine, $\phi(s, t) = 2\pi \left[ s / \lambda - f t \right] $. If the amplitude $A$ varies over quickly over time or space, this approximation may not be exactly correct.
 
-If a fish swims using a traveling wave of curvature $\kappa_s$ defined at a position $s$ along the body as
-$$\kappa_s(t) = A_s(t) \cos\left(2\pi \left[ \frac{s}{\lambda} - f t \right] \right)$$
-where $A_s(t)$ is the wave amplitude, $k$ is the wave length, $f$ is the oscillation frequency, and $t$ is time.
+If we can estimate the phase accurately, then we can use a spatial (i.e., with respect to $s$) or temporal derivative to estimate $\lambda$, the body wavelength, or $f$ the undulation frequency.
 
-We can then take the Hilbert transform to estimate the analytic signal for curvature
-$$\kappa^*_s(t) = \kappa_s(t) + i \mathbf{H}\{\kappa_s(t)\}$$
+Below, we describe two methods for estimating phase.
+
+### Use the Hilbert transform
+
+One convenient and relatively robust way to estimate the phase of each body point  involves the use of the Hilbert transform $\mathbf{H}$, a procedure that uses the Fourier transform to estimate a periodic signal that is 90deg shifted relative to another. In essence, given a cosine signal, the Hilbert transform returns the sine with the same amplitude and frequency. The utility of this operation is that it lets us estimate the ``analytic signal'', a complex-valued signal where the magnitude of the complex number is the amplitude of the wave and the phase angle of the complex number is the phase of the signal.
+
+We can then take the Hilbert transform to estimate the analytic signal for curvature or lateral excursion 
+$$\kappa^*(s, t) = \kappa(s, t) + i \mathbf{H}\{\kappa(s, t)\}$$
 where $i$ is the imaginary number. (Note that the `hilbert` function in R and Python returns the full analytic signal, not just the imaginary component as written above). For a complex number $C = a + ib$, the magnitude is denoted by $||C|| = \left[ a^2 + b^2 \right]^{1/2}$ and the phase angle is denoted by $\angle C = \tan^{-1} (b / a)$.
 
-One can also estimate the analytic signal for the lateral excursion of the body $z_s(t)$, where $z$ is the lateral position of a point on the body, relative to the overall axis of the body. We suggest using the singular value decomposition to estimate the central body axis and then using a low-pass filter with a cutoff frequency lower than the tail beat frequency to remove the tail beat oscillation. See numerical details below.
+One can also estimate the analytic signal for the lateral excursion of the body $z(s, t)$, where $z$ is the lateral position of a point on the body, relative to the overall axis of the body. We suggest using the singular value decomposition to estimate the central body axis and then using a low-pass filter with a cutoff frequency lower than the tail beat frequency to remove the tail beat oscillation, as described above.
 
 The analytic signal thus provides an estimate of the phase can be estimated as a continuous function of both time and position along the body. Other techniques for estimating phase require identifying particular features in the signal (such as peaks or zero crossings) and therefore do not estimate phase as a continuous signal. The estimated phase $\hat{\phi}$ is thus
-$$\hat{\phi}_s(t) = \angle \kappa^*_s(t).$$
-For a traveling wave, this phase, as estimated here, is equal to the argument of the cosine function from the traveling wave equation above, $\hat{\phi}_s(t) = 2\pi [s/\lambda - f t]$.
+$$\hat{\phi}(s, t) = \angle \kappa^*(s, t).$$
+For a traveling wave, this phase, as estimated here, is equal to the argument of the cosine function from the traveling wave equation above, $\hat{\phi}(s, t) = 2\pi [s/\lambda - f t]$.
 
-Therefore, we can use the estimated phase to compute the frequency and wavelength by taking derivatives in time or space, respectively,
-$$\hat{f}(t) = \frac{1}{2\pi} \frac{\partial}{\partial t} \hat{\phi}_s(t)$$
-$$\hat{\lambda}_s(t) = 2 \pi \left( \frac{\partial}{\partial s} \hat{\phi}_s(t) \right)^{-1}$$
-
-The body wave speed $\hat{V}$ is the product of the two:
-$$\hat{V}(t) = \hat{\lambda}_s(t) \hat{f}(t)$$
-
-## Numerical considerations
+### Numerical considerations for the Hilbert transform
 
 The Hilbert transform only works well for this analysis with signals that are centered around zero and consist of many relatively smooth tailbeats. This is why we suggest using the curvature $\kappa$, rather than something like lateral position or the $y$ coordinate of the body. To use the Hilbert transform on a lateral position, it is important to subtract a baseline value or use a high pass filter to ensure that the signal is centered around zero.
 
 Similarly, if the signal is noisy, the phase $\hat{\phi}$ will not increase steadily and the derivatives used to estimate $\hat{f}$ and $\hat{\lambda}$ will not be meaningful. It is best to filter the input signal using a bandpass or low pass filter so that the oscillations are smooth.
 
 In most programming languages, one should use a function `atan2` to estimate phase (not `atan`), because it gives an angle that ranges around the full circle (rather than 0 to 180 degrees). However, the output of `atan2` will jump (usually from $\pi$ to $-\pi$) as $t$ or $s$ increase. To estimate frequency or wavelength, before performing the derivatives, one should estimate a smoothly increasing phase using a function `unwrap`, which searches for jumps and removes them.
+
+### Detect peaks and zero crossings
+
+We can also estimate a phase by detecting specific features in the oscillation, such as peaks or zero crossings, and then interpolating a continuous value for the phase using a spline curve. For a cosine function, as above, a positive peak has phase $\hat{\phi} = 0$, a downward zero crossing has phase $\pi/2$, a negative peak (i.e., a trough) has phase $\pi$, and an upward zero crossing has phase $3\pi/2$. By identifying these features and their corresponding phases, one can then interpolate a continuous phase.
+
+Using this method requires careful error checking. In particular, peaks can be identified erroneously, particularly if there is noise in the signal. We recommend using a strong smoothing filter on the curvature or lateral excursion before estimating phase. See examples and numerical details below.
+
+## 6. Use the phase to estimate frequency and wavelength
+
+We can then use the estimated phase to compute the frequency and wavelength by taking derivatives in time or space, respectively,
+$$\hat{f}(t) = \frac{1}{2\pi} \frac{\partial}{\partial t} \hat{\phi}_s(t)$$
+$$\hat{\lambda}_s(t) = 2 \pi \left( \frac{\partial}{\partial s} \hat{\phi}_s(t) \right)^{-1}$$
+
+The body wave speed $\hat{V}$ is the product of the two:
+$$\hat{V}(t) = \hat{\lambda}_s(t) \hat{f}(t)$$
+
 
 
 
