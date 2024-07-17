@@ -144,14 +144,24 @@ Using this method requires careful error checking. In particular, peaks can be i
 ## 6. Use the phase to estimate frequency and wavelength
 
 We can then use the estimated phase to compute the frequency and wavelength by taking derivatives in time or space, respectively,
-$$\hat{f}(t) = \frac{1}{2\pi} \frac{\partial}{\partial t} \hat{\phi}_s(t)$$
-$$\hat{\lambda}_s(t) = 2 \pi \left( \frac{\partial}{\partial s} \hat{\phi}_s(t) \right)^{-1}$$
+$$\hat{f}(t) = \frac{1}{2\pi} \frac{\partial}{\partial t} \hat{\phi}(s,t)$$
+Estimated this way, frequency should be the same at every point along the body. Therefore, you can average $\hat{f}$ across the body or choose a single point along the body (usually the tail) to use as the estimate of frequency.
+
+$$\hat{\lambda}_s(t) = 2 \pi \left( \frac{\partial}{\partial s} \hat{\phi}(s,t) \right)^{-1}$$
 
 The body wave speed $\hat{V}$ is the product of the two:
-$$\hat{V}(t) = \hat{\lambda}_s(t) \hat{f}(t)$$
+$$\hat{V}(t) = \hat{\lambda}(s, t) \hat{f}(t)$$
 
 
+## 7. Quantify swimming parameters on a cycle-by-cycle basis
 
+Once you have estimated a good undulation phase, it is straightforward to quantify other parameters that vary every cycle. Usually, we need to define an overall phase of the entire body oscillation. It's best to choose the most reliable phase estimate, which is usually the phase of the tail tip or a point near the tail (e.g., $\hat{phi}(L, t)$, where $L$ is the body length). 
+
+As phase increases past $2\pi$, it will jump back to 0. Most programming languages have a functioned called `unwrap` that looks for those jumps and removes them, producing a steadily increasing phase, which we will refer to as $\hat{\Phi}_c(t)$. Then the cycle number is 
+$$ C(t) = \left\lfloor\hat{\Phi}_c(t) / (2\pi) \right\rfloor $$
+where the L brackets denote the `floor` operation, or rounding down to the next lowest integer value.
+
+For example, to find the body amplitude, search within each cycle to find the range of motion for each body point, and divide by two. See details below.
 
 
 # Example analysis of a lamprey data set
@@ -397,13 +407,13 @@ w <-
   group_by(frame) |> 
   mutate(ph2 = gsignal::unwrap(ph_e),
          wavelen_deriv = get_wavelength(arclen, ph2, method="deriv",
-                                   ignore_s = \(s) s < 30),
+                                   ignore_arclen_vals = \(s) s < 30),
          wavelen_slope = get_wavelength(arclen, ph2, method="slope",
-                                   ignore_s = \(s) s < 30),
+                                   ignore_arclen_vals = \(s) s < 30),
          wavelen_cycle = get_wavelength(arclen, ph2, method="cycle",
-                                   ignore_s = \(s) s < 30),
+                                   ignore_arclen_vals = \(s) s < 30),
          wavelen_halfcycle = get_wavelength(arclen, ph2, method="halfcycle",
-                                   ignore_s = \(s) s < 30))
+                                   ignore_arclen_vals = \(s) s < 30))
 w |> 
   pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
   ggplot(aes(x = arclen, y = wavelen, color = method, shape = method)) +
@@ -417,9 +427,9 @@ lampreydata |>
   mutate(phbody_e = gsignal::unwrap(ph_e),
          phbody_c = gsignal::unwrap(ph_c),
          wavelen_exc = get_wavelength(arclen, phbody_e, method="halfcycle",
-                                    ignore_s = \(s) s < 30),
+                                    ignore_arclen_vals = \(s) s < 30),
          wavelen_curve = get_wavelength(arclen, phbody_c, method="halfcycle",
-                                    ignore_s = \(s) s < 30)) |> 
+                                    ignore_arclen_vals = \(s) s < 30)) |> 
   pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
   ggplot(aes(x = t)) +
   geom_point(aes(y = wavelen, color = arclen, shape=method)) +
@@ -434,9 +444,9 @@ lampreydata |>
   mutate(phbody_e = gsignal::unwrap(ph_e),
          phbody_c = gsignal::unwrap(ph_c),
          wavelen_exc = get_wavelength(arclen, phbody_e, method="halfcycle",
-                                    ignore_s = \(s) s < 30),
+                                    ignore_arclen_vals = \(s) s < 30),
          wavelen_curve = get_wavelength(arclen, phbody_c, method="halfcycle",
-                                    ignore_s = \(s) s < 30)) |> 
+                                    ignore_arclen_vals = \(s) s < 30)) |> 
   pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
   ggplot(aes(x = arclen)) +
   geom_point(aes(y = wavelen, color = arclen, shape=method)) +
@@ -452,7 +462,7 @@ To estimate amplitude, it's helpful to set up an overall cycle number for the wh
 ```{r}
 lampreydata <-
   lampreydata |> 
-  get_body_cycle_numbers(t, ph_e, point, 20) |> 
+  get_body_cycle_numbers_df(ph_e, 20) |> 
   arrange(t, point)
 
 lampreydata
