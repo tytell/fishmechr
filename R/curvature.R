@@ -7,6 +7,13 @@
 #'
 #' @returns Arc length along the curve.
 #' @export
+#'
+#' @examples
+#' # compute arc length in each frame from the lamprey data set
+#' lampreydata |>
+#'   group_by(frame) |>
+#'   mutate(arclen = arclength(mxmm, mymm))
+#'
 arclength <- function(x, y)
 {
   assertthat::assert_that(length(x) == length(y))
@@ -134,7 +141,7 @@ deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
 
   if (ord == 1) {
     # standard central difference formula for first derivative
-    D <- (lead(y) - lag(y)) / (lead(x) - lag(x))
+    D <- (dplyr::lead(y) - dplyr::lag(y)) / (dplyr::lead(x) - dplyr::lag(x))
 
     if (ends == "forwardback") {
       # forward difference for the first point
@@ -150,9 +157,9 @@ deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
     if (method == 'direct') {
       # direct formula for the second derivative, given uneven spacing in x
       # see https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/
-      D <- 2*lag(y) / ((x - lag(x))*(lead(x) - lag(x))) -
-        2*y / ((lead(x) - x)*(x - lag(x))) +
-        2*lead(y) / ((lead(x) - x)*(lead(x) - lag(x)))
+      D <- 2*dplyr::lag(y) / ((x - dplyr::lag(x))*(dplyr::lead(x) - dplyr::lag(x))) -
+        2*y / ((dplyr::lead(x) - x)*(x - dplyr::lag(x))) +
+        2*dplyr::lead(y) / ((dplyr::lead(x) - x)*(dplyr::lead(x) - dplyr::lag(x)))
 
       if (ends == "drop") {
         D <- D[2:n-1]
