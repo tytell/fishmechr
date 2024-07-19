@@ -3,8 +3,8 @@ title: "fishmechr"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{fishmechr}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r, include = FALSE}
@@ -106,8 +106,10 @@ We suggest using a low pass filter with a cutoff frequency below the tail beat f
 ## 5. Estimate phase
 
 To estimate the undulation frequency, body wavelength, and wave speed, consider a simple equation for the midline. Fish swim using a traveling wave of curvature $\kappa_s$ (or lateral excursion) defined at an arc length $s$ along the body as
-$$\kappa(s, t) = A(s) \cos\left(2\pi \left[ \frac{s}{\lambda} - f t \right] \right)$$
-where $A(s)$ is the wave amplitude, $k$ is the wave length, $f$ is the oscillation frequency, and $t$ is time. In this case, the phase of the oscillation $\phi(s, t)$ at a particular point along the body is approximately equal to the argument of the cosine, $\phi(s, t) = 2\pi \left[ s / \lambda - f t \right] $. If the amplitude $A$ varies over quickly over time or space, this approximation may not be exactly correct.
+\begin{equation}
+\kappa(s, t) = A(s) \cos\left(2\pi \left[ \frac{s}{\lambda} - f t \right] \right) 
+\end{equation}
+where $A(s)$ is the wave amplitude, $k$ is the wave length, $f$ is the oscillation frequency, and $t$ is time. In this case, the phase of the oscillation $\phi(s, t)$ at a particular point along the body is approximately equal to the argument of the cosine, $2\pi \left( s / \lambda - f t \right)$. If the amplitude $A$ varies over quickly over time or space, this approximation may not be exactly correct.
 
 If we can estimate the phase accurately, then we can use a spatial (i.e., with respect to $s$) or temporal derivative to estimate $\lambda$, the body wavelength, or $f$ the undulation frequency.
 
