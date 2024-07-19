@@ -88,14 +88,11 @@ get_midline_center_df <- function(.data, arclen, x, y, mass,width,height,
 
     .data <- .data |>
       group_by(!!.frame, .add = TRUE) |>
-      fcn(ds = lead({{arclen}}) - {{arclen}},
-          dw = lead(!!width) - !!width,
-          dh = lead(!!height) - !!height,
-          V = pi * ds * (!!width * !!height + 0.5*dw*!!height + 0.5*dh*!!width + 0.333333*dw*dh),
+      fcn(V = get_volume({{arclen}}, !!width, !!height),
           sumV = sum(V, na.rm = TRUE),
 
-          "{.out[1]}" := sum({{V}} * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV),
-          "{.out[2]}" := sum({{V}} * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV)) |>
+          data.table::`:=`("{.out[1]}", sum({{V}} * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV)),
+          data.table::`:=`("{.out[2]}", sum({{V}} * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV))) |>
       select(-c(ds,dw,dh,V,sumV))
   }
   else if (!missing(width) & missing(height)) {
@@ -122,6 +119,38 @@ get_midline_center_df <- function(.data, arclen, x, y, mass,width,height,
   }
 
   .data
+}
+
+#' Gets the volume of segments of a cylindrical body with elliptical cross section
+#'
+#' Used for estimating the center of mass of a fish. If we know the width and
+#' height profile, and we assume that the cross section is elliptical, then
+#' we can estimate the volume of each segment as the volume of a truncated
+#' elliptical cone.
+#'
+#' The formula for such a cone is
+#' $$ V = \pi s (w h + 1/2 \Delta w h + 1/2 \Delta h w + 1/3 \Delta w \Delta h) $$
+#' where $s$ is the length of the cone, $w$ and $h$ are the half width and height,
+#' and $\Delta w$ and $\Delta h$ are the difference in width or height from
+#' one end to the other (e.g., $\Delta w = w(s) - w(0)$ if $w$ is a function of
+#' $s$)
+#'
+#' @param arclen,width,height Arc length, width and height. Should have the same
+#'   units. N points
+#'
+#' @returns Volume of each segment (N-1 values). Last value will be NA
+#' @export
+#'
+#' @examples
+get_volume <- function(arclen, width, height)
+{
+  ds <- dplyr::lead(arclen) - arclen
+
+  dw <- dplyr::lead(width) - width
+  dh <- dplyr::lead(height) - height
+
+  pi * ds * (width * height + 0.5*dw*height +
+               0.5*dh*width + 1/3*dw*dh)
 }
 
 #' Interpolates and scales fish body width
