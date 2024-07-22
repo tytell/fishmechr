@@ -28,6 +28,23 @@ arclength <- function(x, y)
   s
 }
 
+#' Interpolates x and y points on a curve to different arc lengths
+#'
+#' For a 2D curve with (x,y) coordinates parameterized by the arc length,
+#' interpolate new (x,y) coordinates at new arc lengths. Smooth the input
+#' data with a smoothing spline.
+#'
+#' @param arclen Input arc length
+#' @param x,y Coordinates of points on the curve
+#' @param arclen_out New arc length
+#' @param spar Smoothing parameter (ranges from 0 for no smoothing to 1 for
+#'   high smoothing; see [smooth.spline()] for more details.)
+#'
+#' @returns A tibble containing the new interpolated and smoothed x and y
+#'   coordinates as columns `xs` and `ys`
+#' @export
+#'
+#' @examples
 interpolate_points_frame <- function(arclen, x,y, arclen_out,
                                      spar = 0.1)
 {
@@ -52,6 +69,43 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
   tibble(xs = xs, ys = ys)
 }
 
+#' Interpolates and smooths a 2D curve at new arc length
+#'
+#' For a 2D curve with (x,y) coordinates parameterized by the arc length,
+#' interpolate new (x,y) coordinates at new arc lengths. Smooth the input
+#' data with a smoothing spline.
+#'
+#' Operates on each frame (as defined in the `.frame` parameter) individually.
+#'
+#' @param .data Data frame
+#' @param arclen Name of the input arc length column in `.data`
+#' @param x,y Name of the columns that contain the coordinates of points on the
+#'   curve
+#' @param arclen_out Vector containing the new arc length
+#' @param spar Smoothing parameter (ranges from 0 for no smoothing to 1 for
+#'   high smoothing; see [smooth.spline()] for more details.)
+#' @param tailmethod ('keep', 'extrapolate', or 'NA') Methods to estimate the
+#'   position of the tail tip if the last value of `arclength_out` is longer
+#'   than the maximum arc length in the current frame.
+#'   * 'keep' to keep the existing tail point, even if it is not at the
+#'     requested arc length
+#'   * 'extrapolate' to extrapolate a tail tip position, assuming that the
+#'     curve continues straight
+#'   * 'NA' to use replace the tail point with NA in this case.
+#' @param .suffix (default = '_s') Suffix to append to the names of the
+#'   arclen, x, and y columns after smoothing and interpolation.
+#' @param .out Names of the output columns. Defaults are
+#'   (arclen = 'arclen_s', xs = 'xs', ys = 'ys'). Overrides the `.suffix`
+#'   parameter if it is included.
+#' @param overwrite TRUE or FALSE to overwrite existing columns
+#' @param .frame Name of the frame variable in the data frame
+#' @param .point Name of the point variable in the data frame
+#'
+#' @returns A data frame with updated columns for the smoothed and iterpolated
+#'   arc length, x and y coordinates.
+#' @export
+#'
+#' @examples
 interpolate_points_df <- function(.data, arclen, x,y,
                                   arclen_out = NULL,
                                   spar = 0.8,

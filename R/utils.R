@@ -11,6 +11,11 @@
 #'
 #' @return A vector with the same length as `x` with NAs in the same places
 #' @export
+#'
+#' @examples
+#' x <- c(1,2,3,NA,4,5,6,NA,7,8)
+#' skip_na(x, cumsum)
+#' # should return a vector the same length as x with NAs in position 4 and 8
 skip_na <- function(x, f, min.len = 1, ...)
 {
   good <- is.finite(x)
@@ -45,6 +50,13 @@ skip_na <- function(x, f, min.len = 1, ...)
 #'
 #' @return Filter parameters in Sos form
 #' @export
+#'
+#' @examples
+#' # Low pass filter with a cutoff at 0.5Hz for data sampled at 100Hz
+#' lopass <- build_filter(lo=0.5, sampfreq=100)
+#'
+#' # Band pass filter that passes frequencies between 0.5 and 10Hz
+#' bandpass <- build_filter(lo=0.5, hi=10, sampfreq=100)
 build_filter <- function(lo=NULL, hi=NULL, sampfreq, order=13)
 {
   assertthat::assert_that(!(is.null(lo) & is.null(hi)),
@@ -88,6 +100,26 @@ apply_filter <- function(filt, x, na.skip=TRUE)
   }
 }
 
+#' Check if a data frame has columns that we might overwrite
+#'
+#' Helper function for other functions in the package that create new columns
+#' in a data frame, to check if the columns are already present in the data
+#' frame.
+#'
+#' Produces a warning if the columns are present but `overwrite` is true, and
+#' an error if `overwrite` is false.
+#'
+#' @param df Data frame
+#' @param newcols Names of the columns, as strings
+#' @param overwrite TRUE or FALSE to overwrite the columns
+#'
+#' @export
+#'
+#' @examples
+#' df <- data.frame(a=c(1,2,3), b=c(1,2,3))
+#'
+#' # this should give a warning
+#' check_if_overwrite_columns(df, c('a', 'd'), overwrite=TRUE)
 check_if_overwrite_columns <- function(df, newcols, overwrite)
 {
   if (any(newcols %in% colnames(df))) {
@@ -102,6 +134,29 @@ check_if_overwrite_columns <- function(df, newcols, overwrite)
   }
 }
 
+#' Helper function to check the `.out` and `.out_default` variables used in
+#' this package
+#'
+#' * If `.out` is NULL, returns `.out_default`.
+#' * If `.out` is a vector containing strings, checks to make sure that there
+#'   are the same number of strings in `.out` as items in `.out_default`
+#' * If `.out` is a list with named elements, checks to make sure the names
+#'   are present in `.out_default`. Ignores names not present in `.out_default`,
+#'   but gives a warning. If any elements in `.out_default` are not in `.out`,
+#'   uses the values from `.out_default`. Sorts the items in the same order
+#'   as in `.out_default`.
+#'
+#' Checks if there are columns with the same names in the data frame `.data`.
+#' Gives a warning if there are such columns and `overwrite` is TRUE, and an
+#' error if `overwrite` is FALSE.
+#'
+#' @param .data Data frame
+#' @param .out Name for output columns
+#' @param .out_default Named list containing default names for output columns
+#' @param overwrite TRUE or FALSE to overwrite columns.
+#'
+#' @returns The updated `.out` list.
+#' @export
 check.out <- function(.data, .out, .out_default, overwrite)
 {
   if (is.null(.out)) {
