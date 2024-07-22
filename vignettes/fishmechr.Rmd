@@ -74,7 +74,9 @@ $$ y_{com} = \frac{\sum_{i=1}^{n} w_i y_i}{\sum_{i=1}^{n} w_i} $$
 
 ### Curvature
 
-The 2D curvature $\kappa$ of the midline in the horizontal plane is often a useful variable to compute. It can be thought of in two different ways. First, it is the inverse of the radius of curvature: the radius of a circle drawn through three successive points. The smaller the radius of curvature, the sharper the body bend, and the larger the value of $\kappa$. This estimate for curvature is defined by the following equation
+The 2D curvature $\kappa$ of the midline in the horizontal plane is often a useful variable to compute. In particular, it is usually proportional to the muscle strain at that point on the body (Shadwick 1998, Katz 1999). In contrast, the lateral excursion of the body is not usually a good estimate of muscle strain (Shadwick 1998).
+
+Mathematically, curvature can be thought of in two different ways. First, it is the inverse of the radius of curvature: the radius of a circle drawn through three successive points. The smaller the radius of curvature, the sharper the body bend, and the larger the value of $\kappa$. This estimate for curvature is defined by the following equation
 $$ \kappa = \left[ \frac{\partial x}{\partial s} \frac{\partial^2 y}{\partial s^2} - \frac{\partial y}{\partial s} \frac{\partial^2 x}{\partial s^2} \right] \left[ \left( \frac{\partial x}{\partial s} \right)^2 + \left( \frac{\partial y}{\partial s} \right)^2 \right]^{-3/2} $$
 
 Second, it is the spatial derivative of the angle of each segment. If a segment at arc length $s$ has an angle $\theta$ to the horizontal axis, then the curvature is
