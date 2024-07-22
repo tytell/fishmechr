@@ -199,6 +199,8 @@ get_body_cycle_numbers_df <- function(.data, ph, pointval,
 #' get_wavelength(s, ph, ignore_arclen_vals = \(s) s < 0.3)
 get_wavelength <- function(arclen, ph, unwrap=TRUE, method='deriv',
                            ignore_arclen_vals=NULL,
+                           sort_arclen=FALSE,
+                           check_reasonableness=TRUE,
                            mod=2*pi, traveling_wave_dir=-1)
 {
   assertthat::assert_that(method %in% c('deriv', 'slope', 'cycle', 'halfcycle'))
@@ -213,6 +215,11 @@ get_wavelength <- function(arclen, ph, unwrap=TRUE, method='deriv',
     bad <- rep(FALSE, length(arclen))
   }
   good <- !bad
+
+  if (sort_arclen) {
+    ph <- sort_by(ph, arclen)
+    arclen <- sort(arclen, na.last = TRUE)
+  }
 
   if (method == "deriv") {
     k <- deriv(arclen, ph) / mod
@@ -236,6 +243,17 @@ get_wavelength <- function(arclen, ph, unwrap=TRUE, method='deriv',
     ph[bad] <- NA
 
     ph <- ph * traveling_wave_dir
+
+    if (check_reasonableness) {
+      phdir <- ph[2:length(ph)] - ph[1:(length(ph)-1)]
+      if (sum(phdir > 0, na.rm = TRUE) < 0.8*sum(!is.na(phdir))) {
+        if (traveling_wave_dir < 0) {
+          warning("Phase does not seem to be decreasing along the body. Wavelength may be strange")
+        } else {
+          warning("Phase does not seem to be decreasing along the body. Wavelength may be strange")
+        }
+      }
+    }
     k <- which.max(ph)
     ph <- ph - ph[k]
     ph <- ph %% m

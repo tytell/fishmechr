@@ -328,9 +328,11 @@ Now we compute the phase of each body point as it oscillates over time, looking 
 ```{r}
 lampreydata <-
   lampreydata |> 
+  arrange(frame, desc(point)) |> 
   group_by(point) |> 
   mutate(ph_c = hilbert_phase(curve_ang),
-         ph_e = hilbert_phase(exc))
+         ph_e = hilbert_phase(exc),
+         ph_p = peak_phase(exc))
 ```
 `hilbert_phase` does a few checks on the results and gives warnings if it finds things that might cause problems.
 * It checks to make sure that most of the input data is not NA. It does not give a warning if all of the input data is NA, only if at least some of the data is not NA.
@@ -343,7 +345,7 @@ lampreydata |>
   ungroup() |> 
   filter(point %in% c(3, 8, 15, 18)) |> 
   mutate(point = factor(point)) |> 
-  pivot_longer(cols = c(ph_c, ph_e), names_to = "method", values_to = "phase") |> 
+  pivot_longer(cols = c(ph_c, ph_e, ph_p), names_to = "method", values_to = "phase") |> 
   ggplot(aes(x = t, y = phase, color = point, linetype = method)) +
   geom_path() + 
   facet_wrap(~point)
@@ -357,12 +359,13 @@ As described above, the time derivative of the phase is the frequency. Here, we 
 lampreydata |> 
   group_by(point) |> 
   mutate(freq_c = get_frequency(t, ph_c, method='deriv'),
-         freq_e = get_frequency(t, ph_e, method='deriv')) |> 
-  pivot_longer(cols = c(freq_c, freq_e), names_to = "method", values_to = "freq") |> 
+         freq_e = get_frequency(t, ph_e, method='deriv'),
+         freq_p = get_frequency(t, ph_p, method='deriv')) |> 
+  pivot_longer(cols = c(freq_c, freq_e, freq_p), names_to = "method", values_to = "freq") |> 
   filter(point %in% c(3, 15, 18)) |> 
   mutate(point = factor(point)) |> 
   ggplot(aes(x = t, y = freq, color = point, shape = method)) +
-  scale_shape_manual(values = c(1, 17)) +
+  scale_shape_manual(values = c(1, 17, 22)) +
   geom_point() +
   facet_wrap(~point)
 ```
@@ -373,7 +376,7 @@ Body wavelength, as described above, is the derivative of the phase of each poin
 lampreydata |> 
   filter(frame %in% c(60, 80)) |> 
   group_by(frame) |> 
-  mutate(phbody = ph_e) |>
+  mutate(phbody = ph_p) |>
   ggplot(aes(x = arclen, y = phbody, color = frame)) +
   geom_path(aes(group = frame))
 ```
@@ -382,7 +385,7 @@ The apparent discontinuity at $s$ = 50mm is not real. It just reflects the fact 
 This is the phase across the body with the discontinuities removed.
 ```{r}
 lampreydata |> 
-  filter(frame %in% c(60, 80)) |> 
+  filter(frame %in% c(50, 60)) |> 
   group_by(frame) |> 
   mutate(phbody = gsignal::unwrap(ph_e)) |>
   ggplot(aes(x = arclen, y = phbody, color = frame)) +
@@ -405,7 +408,8 @@ Here is an example for a single frame. We're ignoring points that are less than 
 ```{r}
 w <-
   lampreydata |> 
-  filter(frame %in% c(50)) |> 
+  arrange(frame, arclen) |> 
+  filter(frame %in% c(40)) |> 
   group_by(frame) |> 
   mutate(ph2 = gsignal::unwrap(ph_e),
          wavelen_deriv = get_wavelength(arclen, ph2, method="deriv",
@@ -413,9 +417,11 @@ w <-
          wavelen_slope = get_wavelength(arclen, ph2, method="slope",
                                    ignore_arclen_vals = \(s) s < 30),
          wavelen_cycle = get_wavelength(arclen, ph2, method="cycle",
-                                   ignore_arclen_vals = \(s) s < 30),
+                                   ignore_arclen_vals = \(s) s < 30,
+                                   sort_arclen = FALSE),
          wavelen_halfcycle = get_wavelength(arclen, ph2, method="halfcycle",
-                                   ignore_arclen_vals = \(s) s < 30))
+                                   ignore_arclen_vals = \(s) s < 30,
+                                   sort_arclen = TRUE))
 w |> 
   pivot_longer(cols = contains("wavelen"), names_to = "method", values_to = "wavelen") |> 
   ggplot(aes(x = arclen, y = wavelen, color = method, shape = method)) +
@@ -425,6 +431,7 @@ Here, you can see that all of the methods give similar results, but there are di
 
 ```{r}
 lampreydata |> 
+  arrange(frame, arclen) |> 
   group_by(frame) |> 
   mutate(phbody_e = gsignal::unwrap(ph_e),
          phbody_c = gsignal::unwrap(ph_c),
@@ -442,6 +449,7 @@ Here we see that wavelength estimated based on curvature is slightly noisier tha
 
 ```{r}
 lampreydata |> 
+  arrange(frame, arclen) |> 
   group_by(frame) |> 
   mutate(phbody_e = gsignal::unwrap(ph_e),
          phbody_c = gsignal::unwrap(ph_c),
@@ -464,7 +472,7 @@ To estimate amplitude, it's helpful to set up an overall cycle number for the wh
 ```{r}
 lampreydata <-
   lampreydata |> 
-  get_body_cycle_numbers_df(ph_e, 20) |> 
+  get_body_cycle_numbers_df(ph_p, 20) |> 
   arrange(t, point)
 
 lampreydata
