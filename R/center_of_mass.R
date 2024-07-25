@@ -129,11 +129,11 @@ get_midline_center_df <- function(.data, arclen, x, y, mass,width,height,
 #' elliptical cone.
 #'
 #' The formula for such a cone is
-#' $$ V = \pi s (w h + 1/2 \Delta w h + 1/2 \Delta h w + 1/3 \Delta w \Delta h) $$
-#' where $s$ is the length of the cone, $w$ and $h$ are the half width and height,
-#' and $\Delta w$ and $\Delta h$ are the difference in width or height from
-#' one end to the other (e.g., $\Delta w = w(s) - w(0)$ if $w$ is a function of
-#' $s$)
+#' V = pi s (w h + 1/2 dw h + 1/2 dh w + 1/3 dw dh)
+#' where s is the length of the cone, w and h are the half width and height,
+#' and dw and dh are the difference in width or height from
+#' one end to the other (e.g., dw = w(s) - w(0) if w is a function of
+#' s)
 #'
 #' @param arclen,width,height Arc length, width and height. Should have the same
 #'   units. N points
