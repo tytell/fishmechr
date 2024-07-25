@@ -129,7 +129,7 @@ get_primary_swimming_axis_df <- function(.data, t, x,y,
     group_by(!!.frame, .add = TRUE) |>
     summarize(swimaxis = get_primary_swimming_axis({{x}},{{y}}),
               t = first({{t}})) |>
-    unnest(swimaxis)
+    tidyr::unnest(swimaxis)
 
   # get the sampling rate
   dt <- swimaxis$t[2] - swimaxis$t[1]

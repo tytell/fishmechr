@@ -1,4 +1,15 @@
 
+#' Compute phase of an oscillation using the Hilbert transform
+#'
+#' @param x
+#' @param na.skip
+#' @param unwrap
+#' @param check_reasonableness
+#'
+#' @returns Phase
+#' @export
+#'
+#' @examples
 hilbert_phase <- function(x, na.skip=TRUE, unwrap=TRUE,
                           check_reasonableness=TRUE)
 {
@@ -40,6 +51,18 @@ hilbert_phase <- function(x, na.skip=TRUE, unwrap=TRUE,
   ph
 }
 
+#' Interpolate the location of a peak based on three points
+#'
+#' Uses a parabolic approximation to determine the location of a
+#' peak from 3 points.
+#'
+#' @param y
+#' @param x
+#'
+#' @return
+#' @export
+#'
+#' @examples
 interpolate_peak_location <- function(y, x = c(-1, 0, 1))
 {
   # formula from https://math.stackexchange.com/questions/889569/finding-a-parabola-from-three-points-algebraically
@@ -55,6 +78,21 @@ interpolate_peak_location <- function(y, x = c(-1, 0, 1))
   xv
 }
 
+#' Compute phase of an oscillation by locating peaks and zero crossings
+#'
+#' @param x
+#' @param unwrap
+#' @param check_reasonableness
+#' @param check_ordering
+#' @param interpolate_peaks
+#' @param interpolate_zeros
+#' @param zero_mode
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 peak_phase <- function(x, unwrap=TRUE,
                        check_reasonableness=TRUE,
                        check_ordering=TRUE,
