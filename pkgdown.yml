@@ -1,0 +1,9 @@
+pandoc: 3.1.11
+pkgdown: 2.1.0
+pkgdown_sha: ~
+articles:
+  fishmechr: fishmechr.html
+last_built: 2024-07-25T19:04Z
+urls:
+  reference: https://tytell.github.io/fishmechr/reference
+  article: https://tytell.github.io/fishmechr/articles
