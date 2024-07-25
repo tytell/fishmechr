@@ -15,8 +15,8 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-# library(fishmechr)
-devtools::load_all()
+library(fishmechr)
+# devtools::load_all()
 library(tidyverse)
 library(patchwork)
 ```
