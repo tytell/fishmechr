@@ -2,3 +2,25 @@ url: https://tytell.github.io/fishmechr/
 template:
   bootstrap: 5
 
+reference:
+- title: "Main functions"
+  desc: >
+    Main functions for estimating kinematic parameters from midline data.
+    These are more or less in the order you would use them.
+- contents:
+  - arclength
+  - interpolate_points_df
+  - interpolate_width
+  - get_midline_center_df
+  - get_primary_swimming_axis_df
+  - curvature
+  - hilbert_phase
+  - peak_phase
+  - get_frequency
+  - get_wavelength
+  - get_body_cycle_numbers_df
+- title: "Helper functions"
+  desc: >
+    Other useful functions for estimating kinematic parameters.
+- contents:
+  - lacks_concepts("pipeline")

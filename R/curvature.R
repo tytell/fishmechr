@@ -8,6 +8,8 @@
 #' @returns Arc length along the curve.
 #' @export
 #'
+#' @concept pipeline
+#'
 #' @examples
 #' # compute arc length in each frame from the lamprey data set
 #' lampreydata |>
@@ -105,6 +107,7 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
 #'   arc length, x and y coordinates.
 #' @export
 #'
+#' @concept pipeline
 #' @examples
 interpolate_points_df <- function(.data, arclen, x,y,
                                   arclen_out = NULL,
@@ -240,6 +243,8 @@ deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
 #' @param method ("xy" or "angle") for the direct formula or for the angle
 #'     derivative
 #' @returns Curvature.
+#'
+#' @concept pipeline
 #' @export
 curvature <- function(s, x, y, method="angle")
 {

@@ -82,6 +82,8 @@ get_primary_swimming_axis <- function(x, y, center=TRUE)
 #' * a,b: The new midlines centered and projected on to the swimming direction
 #'   and the perpendicular axis. `b` is useful as the lateral excursion of the
 #'   swimming undulation.
+#'
+#' @concept pipeline
 #' @export
 get_primary_swimming_axis_df <- function(.data, t, x,y,
                                          .out = NULL,

@@ -19,7 +19,7 @@
 #' @returns The frequency estimate, either as a vector the same size as `ph`
 #'   (for the 'deriv' algorithm) or as a single value (for the 'slope' algorithm)
 #' @export
-#'
+#' @concept pipeline
 #' @examples
 #' t <- seq(0, 3, by=0.1)
 #' # example phase that has a frequency of exactly 2.3 Hz
@@ -125,7 +125,7 @@ get_cycle_numbers <- function(ph, unwrap=FALSE, mod=2*pi,
 #'   the name for the cycle variable, or as a named list with an element named
 #'   `cycle`). Default is 'cycle'
 #' @param ... Extra parameters to supply to [get_cycle_numbers()]
-#'
+#' @concept pipeline
 #' @returns A data frame containing a new column with the cycle numbers named
 #'   'cycle' or as specified in .out.
 #' @export
@@ -190,7 +190,7 @@ get_body_cycle_numbers_df <- function(.data, ph, pointval,
 #'
 #' @returns The wavelength as a vector the same size as the phase variable
 #' @export
-#'
+#' @concept pipeline
 #' @examples
 #' s <- seq(0, 1, by=0.1)
 #' # artificial data with a wavelength of exactly 0.6

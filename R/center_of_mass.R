@@ -38,6 +38,8 @@
 #'   xcom, ycom (or names as specified in `.out`). The center of each midline
 #'   in each frame.
 #' @export
+#'
+#' @concept pipeline
 #' @examples
 #' lampreydata |>
 #'   group_by(frame) |>
@@ -168,6 +170,7 @@ get_volume <- function(arclen, width, height)
 #' @param width0 Width measurement. Should have the same units as `arclen0`
 #' @param arclen New arc length
 #'
+#' @concept pipeline
 #' @returns Width at the new values of arc length, scaled for the new length
 #' @export
 interpolate_width <- function(arclen0, width0, arclen)

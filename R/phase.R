@@ -9,6 +9,7 @@
 #' @returns Phase
 #' @export
 #'
+#' @concept pipeline
 #' @examples
 hilbert_phase <- function(x, na.skip=TRUE, unwrap=TRUE,
                           check_reasonableness=TRUE)
@@ -91,7 +92,7 @@ interpolate_peak_location <- function(y, x = c(-1, 0, 1))
 #'
 #' @return
 #' @export
-#'
+#' @concept pipeline
 #' @examples
 peak_phase <- function(x, unwrap=TRUE,
                        check_reasonableness=TRUE,
