@@ -1,16 +1,26 @@
 
 #' Compute phase of an oscillation using the Hilbert transform
 #'
-#' @param x
-#' @param na.skip
-#' @param unwrap
-#' @param check_reasonableness
+#' Given a value that oscillates (`x`), first computes the analytic signal
+#' using the Hilbert transform, then the phase of that signal.
 #'
-#' @returns Phase
+#' @param x Oscillating signal
+#' @param na.skip TRUE or FALSE to skip NAs. See [skip_na()] for differences with
+#'   na.omit (default = TRUE)
+#' @param unwrap TRUE or FALSE to unwrap the phase signal so that it increases
+#'   smoothly over time (default = TRUE)
+#' @param check_reasonableness TRUE or FALSE to run some checks on the input
+#'   data to make sure that the output will be reasonable (default = TRUE)
+#'
+#' @returns Phase (mod 2pi)
 #' @export
 #'
 #' @concept pipeline
 #' @examples
+#' t <- seq(0, 4, by=0.1)
+#' # signal that increases in frequency over time
+#' x <- cos(2*pi*t*(2.2 + 0.2*t))
+#' ph <- hilbert_phase(x)
 hilbert_phase <- function(x, na.skip=TRUE, unwrap=TRUE,
                           check_reasonableness=TRUE)
 {
@@ -57,13 +67,20 @@ hilbert_phase <- function(x, na.skip=TRUE, unwrap=TRUE,
 #' Uses a parabolic approximation to determine the location of a
 #' peak from 3 points.
 #'
-#' @param y
-#' @param x
+#' @param y 3 points on the curve, where the peak/trough should be at `y[2]`, so
+#'   that `y[1]` and `y[3]` are lower/higher, respectively, than `y[2]`
+#' @param x x coordinates. Defaults to `x = c(-1, 0, 1)`, so that the output is
+#'   an offset of the peak location from what was originally detected. It could
+#'   also be the true `x` coordinates, which is important if they're unevenly
+#'   spaced.
 #'
-#' @return
+#' @returns The location of the peak, either as an offset (with default `x`) or
+#'   as a true `x` coordinate
 #' @export
 #'
 #' @examples
+#' y <- c(1, 2, 0.5)
+#' interpolate_peak_location(y)
 interpolate_peak_location <- function(y, x = c(-1, 0, 1))
 {
   # formula from https://math.stackexchange.com/questions/889569/finding-a-parabola-from-three-points-algebraically
@@ -79,21 +96,45 @@ interpolate_peak_location <- function(y, x = c(-1, 0, 1))
   xv
 }
 
-#' Compute phase of an oscillation by locating peaks and zero crossings
+#' Compute phase of an oscillation by locating peaks and zero crossings.
 #'
-#' @param x
-#' @param unwrap
-#' @param check_reasonableness
-#' @param check_ordering
-#' @param interpolate_peaks
-#' @param interpolate_zeros
-#' @param zero_mode
-#' @param ...
+#' For an oscillatory signal, we can define a positive peak as having phase 0
+#' and a negative peak as having phase pi, with the zero crossings or
+#' intermediate points having phase pi/2 and 3pi/2. Then, if we find those
+#' peaks and zero crossings, we can interpolate to find the phase at any
+#' point.
 #'
-#' @return
+#' Uses [pracma::findpeaks()] to locate peaks.
+#'
+#' @param x Oscillatory signal
+#' @param unwrap TRUE or FALSE to unwrap the phase signal so that it increases
+#'   smoothly over time (default = TRUE)
+#' @param check_reasonableness TRUE or FALSE to run some checks on the input
+#'   data to make sure that the output will be reasonable (default = TRUE)
+#' @param check_ordering TRUE or FALSE to check the order of peaks and zeros.
+#'   A good signal should have a positive peak followed by a downward zero,
+#'   then a negative peak followed by an upward zero. (default = TRUE)
+#' @param interpolate_peaks TRUE or FALSE to interpolate the locations of
+#'   peaks using a 3-point parabola (see [interpolate_peak_location()]).
+#'   (default = TRUE)
+#' @param interpolate_zeros TRUE or FALSE to interpolate the locations of
+#'   zero crossings linearly (default = TRUE)
+#' @param zero_mode 'midpoint', 'zero', or 'none' or NA. Define zero crossings
+#'   as the point halfway between a positive and a negative peak ('midpoint'),
+#'   or as a genuine zero crossing ('zero'). If 'none' or NA, do not detect zeros.
+#' @param ... Other parameters to supply to [pracma::findpeaks()].
+#'   'minpeakdistance', the minimum number of index values between peaks, is
+#'   often the most useful.
+#'
+#' @returns The phase of the oscillatory signal.
+#'
 #' @export
 #' @concept pipeline
 #' @examples
+#' #' t <- seq(0, 4, by=0.1)
+#' # signal that increases in frequency over time
+#' x <- cos(2*pi*t*(2.2 + 0.2*t))
+#' ph <- peak_phase(x)
 peak_phase <- function(x, unwrap=TRUE,
                        check_reasonableness=TRUE,
                        check_ordering=TRUE,
@@ -115,11 +156,14 @@ peak_phase <- function(x, unwrap=TRUE,
     }
   }
 
+  # positive peaks
   pkhi <- pracma::findpeaks(x, ...)
+  # negative peaks (= troughs)
   pklo <- pracma::findpeaks(-x, ...)
 
   signlevels <- c('hi', 'down', 'lo', 'up')
 
+  # sort both types of peaks in order
   pk <- c(pkhi[,1], -pklo[,1])
   ipk <- c(pkhi[,2], pklo[,2])
   pksign <- factor(c(rep_len('hi', nrow(pkhi)), rep_len('lo', nrow(pklo))),
@@ -128,6 +172,7 @@ peak_phase <- function(x, unwrap=TRUE,
   pksign <- sort_by(pksign, ipk)
   ipk <- sort(ipk)
 
+  # ipkoff is the fractional offset of the peak location
   ipkoff <- rep_len(0, length(ipk))
 
   if (interpolate_peaks) {
@@ -144,11 +189,13 @@ peak_phase <- function(x, unwrap=TRUE,
   }
 
   if (is.na(zero_mode) || (zero_mode == 'none')) {
+    # do not detect zeros
     izero <- rep_len(NA, length(ipk)-1)
     izerooff <- rep_len(0, length(ipk)-1)
     zerosign <- factor(rep_len(NA, length(ipk)-1), levels = signlevels)
   }
   else if (zero_mode == 'midpoint') {
+    # look for midpoints between opposite sign peaks
     izero <- rep_len(NA, length(ipk)-1)
     izerooff <- rep_len(0, length(ipk)-1)
     zerosign <- factor(rep_len(NA, length(ipk)-1), levels = signlevels)
