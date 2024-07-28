@@ -170,6 +170,8 @@ For example, to find the body amplitude, search within each cycle to find the ra
 
 # Example analysis of a lamprey data set
 
+## Data structure
+
 The data set `lampreydata` is included in the `fishmechr` package. Most swimming kinematics
 data sets should have a similar structure:
 * A time or frame column. It's often good to keep both in the data set. (Here, these are in `t` and `frame`)
@@ -189,6 +191,8 @@ lampreydata |>
   geom_path() +
   coord_fixed()
 ```
+
+# Kinematics process
 
 ## Compute arc length
 
