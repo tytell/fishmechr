@@ -7,9 +7,23 @@
 interpolate_peak_location(y, x = c(-1, 0, 1))
 }
 \arguments{
-\item{x}{}
+\item{y}{3 points on the curve, where the peak/trough should be at \code{y[2]}, so
+that \code{y[1]} and \code{y[3]} are lower/higher, respectively, than \code{y[2]}}
+
+\item{x}{x coordinates. Defaults to \code{x = c(-1, 0, 1)}, so that the output is
+an offset of the peak location from what was originally detected. It could
+also be the true \code{x} coordinates, which is important if they're unevenly
+spaced.}
+}
+\value{
+The location of the peak, either as an offset (with default \code{x}) or
+as a true \code{x} coordinate
 }
 \description{
 Uses a parabolic approximation to determine the location of a
 peak from 3 points.
+}
+\examples{
+y <- c(1, 2, 0.5)
+interpolate_peak_location(y)
 }

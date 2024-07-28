@@ -7,12 +7,28 @@
 hilbert_phase(x, na.skip = TRUE, unwrap = TRUE, check_reasonableness = TRUE)
 }
 \arguments{
-\item{check_reasonableness}{}
+\item{x}{Oscillating signal}
+
+\item{na.skip}{TRUE or FALSE to skip NAs. See \code{\link[=skip_na]{skip_na()}} for differences with
+na.omit (default = TRUE)}
+
+\item{unwrap}{TRUE or FALSE to unwrap the phase signal so that it increases
+smoothly over time (default = TRUE)}
+
+\item{check_reasonableness}{TRUE or FALSE to run some checks on the input
+data to make sure that the output will be reasonable (default = TRUE)}
 }
 \value{
-Phase
+Phase (mod 2pi)
 }
 \description{
-Compute phase of an oscillation using the Hilbert transform
+Given a value that oscillates (\code{x}), first computes the analytic signal
+using the Hilbert transform, then the phase of that signal.
+}
+\examples{
+t <- seq(0, 4, by=0.1)
+# signal that increases in frequency over time
+x <- cos(2*pi*t*(2.2 + 0.2*t))
+ph <- hilbert_phase(x)
 }
 \concept{pipeline}
