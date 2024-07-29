@@ -33,7 +33,11 @@
     <div class="section level2">
       <h2 id="main-functions">Main functions<a class="anchor" aria-label="anchor" href="#main-functions"></a></h2>
 
-      <div class="section-desc"><p>Main functions for estimating kinematic parameters from midline data. These are more or less in the order you would use them.</p></div>
+      <div class="section-desc"><p>Main functions for estimating kinematic parameters from midline data. These are more or less in the order you would use them. Functions ending in <code>_df</code> operate on a data frame and often add multiple columns to the data frame. The data frame should have two identifier columns:</p><ul><li>
+<code>frame</code>: Identifies instants in time</li>
+<li>
+<code>point</code>: Identifies locations along the body, so that they can be ordered from head to tail.</li>
+</ul><p>To use identifier columns with different names, the functions take options <code>.frame</code> and <code>.point</code>. To change the names of the output columns, the functions use an option <code>.out</code>. <code>.out</code> can be a vector containing the names of the columns, or a named list.</p></div>
 
 
     </div><div class="section level2">
