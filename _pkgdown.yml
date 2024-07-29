@@ -7,6 +7,21 @@ reference:
   desc: >
     Main functions for estimating kinematic parameters from midline data.
     These are more or less in the order you would use them.
+
+    Functions ending in `_df` operate on a data frame and often add multiple
+    columns to the data frame. The data frame should have two identifier
+    columns:
+
+      * `frame`: Identifies instants in time
+      * `point`: Identifies locations along the body, so that they can be
+        ordered from head to tail.
+
+    To use identifier columns with different names, the functions take options
+    `.frame` and `.point`.
+
+    To change the names of the output columns, the functions use an option
+    `.out`. `.out` can be a vector containing the names of the columns, or
+    a named list.
 - contents:
   - arclength
   - interpolate_points_df
