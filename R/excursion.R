@@ -3,7 +3,8 @@
 #' Computes the main swimming axis of a midline as a unit vector,
 #' using the singular value
 #' decomposition ([svd()]). This only works well if the midlines are centered
-#' around zero, so it optionally subtracts off the mean of x and y.
+#' around zero, so it optionally subtracts off the mean of x and y. For more
+#' sophisticated centering algorithms, see [get_midline_center_df()].
 #'
 #' @param x,y Coordinates of the midline
 #' @param center (TRUE or FALSE) Subtract the mean from the x and y coordinates
@@ -12,6 +13,8 @@
 #'   * `swimaxis_x`, `swimaxis_y` x and y components of the swimming axis vector
 #'   * `swimaxis_xctr`, `swimaxis_yctr` Mean x and y values that were subtracted
 #'     before running the SVD
+#'
+#' @seealso [get_midline_center_df()]
 #'
 #' @export
 #'
