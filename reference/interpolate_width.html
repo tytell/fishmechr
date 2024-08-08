@@ -50,7 +50,7 @@ maximum length.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">interpolate_width</span><span class="op">(</span><span class="va">arclen0</span>, <span class="va">width0</span>, <span class="va">arclen</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">interpolate_width</span><span class="op">(</span><span class="va">arclen0</span>, <span class="va">width0</span>, <span class="va">arclen</span>, scale_to_body_length <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -58,7 +58,8 @@ maximum length.</p>
 
 
 <dl><dt id="arg-arclen-">arclen0<a class="anchor" aria-label="anchor" href="#arg-arclen-"></a></dt>
-<dd><p>Arc length for the width measurement</p></dd>
+<dd><p>Arc length for the width measurement. The first value should
+be at the head and the last value should be at the tail tip.</p></dd>
 
 
 <dt id="arg-width-">width0<a class="anchor" aria-label="anchor" href="#arg-width-"></a></dt>
@@ -67,6 +68,13 @@ maximum length.</p>
 
 <dt id="arg-arclen">arclen<a class="anchor" aria-label="anchor" href="#arg-arclen"></a></dt>
 <dd><p>New arc length</p></dd>
+
+
+<dt id="arg-scale-to-body-length">scale_to_body_length<a class="anchor" aria-label="anchor" href="#arg-scale-to-body-length"></a></dt>
+<dd><p>TRUE or FALSE to scale the interpolated width
+by multiplying by body length. This only works if <code>arclen</code> is in real units
+(like cm) so that the last value in <code>arclen</code> is equal to the total length
+of the fish.</p></dd>
 
 </dl></div>
     <div class="section level2">
