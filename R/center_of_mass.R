@@ -166,21 +166,29 @@ get_volume <- function(arclen, width, height)
 #' Width here is defined as the distance from one side of the body to the other
 #' (like a diameter), not from the center to a side (like a radius).
 #'
-#' @param arclen0 Arc length for the width measurement
+#' @param arclen0 Arc length for the width measurement. The first value should
+#'   be at the head and the last value should be at the tail tip.
 #' @param width0 Width measurement. Should have the same units as `arclen0`
 #' @param arclen New arc length
+#' @param scale_to_body_length TRUE or FALSE to scale the interpolated width
+#'   by multiplying by body length. This only works if `arclen` is in real units
+#'   (like cm) so that the last value in `arclen` is equal to the total length
+#'   of the fish.
 #'
 #' @concept pipeline
 #' @returns Width at the new values of arc length, scaled for the new length
 #' @export
-interpolate_width <- function(arclen0, width0, arclen)
+interpolate_width <- function(arclen0, width0, arclen, scale_to_body_length=TRUE)
 {
 
   if (sum(!is.na(arclen)) > 2) {
     len0 <- max(arclen0, na.rm = TRUE)
     len1 <- max(arclen, na.rm = TRUE)
 
-    xy <- approx(arclen0/len0*len1, width0/len0*len1, xout=arclen)
+    xy <- approx(arclen0/len0*len1, width0, xout=arclen)
+    if (scale_to_body_length) {
+      xy$y = xy$y / len0 * len1
+    }
     xy$y
   } else {
     rep(NA, length(arclen))

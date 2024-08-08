@@ -4,14 +4,20 @@
 \alias{interpolate_width}
 \title{Interpolates and scales fish body width}
 \usage{
-interpolate_width(arclen0, width0, arclen)
+interpolate_width(arclen0, width0, arclen, scale_to_body_length = TRUE)
 }
 \arguments{
-\item{arclen0}{Arc length for the width measurement}
+\item{arclen0}{Arc length for the width measurement. The first value should
+be at the head and the last value should be at the tail tip.}
 
 \item{width0}{Width measurement. Should have the same units as \code{arclen0}}
 
 \item{arclen}{New arc length}
+
+\item{scale_to_body_length}{TRUE or FALSE to scale the interpolated width
+by multiplying by body length. This only works if \code{arclen} is in real units
+(like cm) so that the last value in \code{arclen} is equal to the total length
+of the fish.}
 }
 \value{
 Width at the new values of arc length, scaled for the new length

@@ -23,7 +23,8 @@ before running the SVD
 Computes the main swimming axis of a midline as a unit vector,
 using the singular value
 decomposition (\code{\link[=svd]{svd()}}). This only works well if the midlines are centered
-around zero, so it optionally subtracts off the mean of x and y.
+around zero, so it optionally subtracts off the mean of x and y. For more
+sophisticated centering algorithms, see \code{\link[=get_midline_center_df]{get_midline_center_df()}}.
 }
 \examples{
 # run the algorithm across multiple midlines at different times
@@ -31,4 +32,7 @@ lampreydata |>
   group_by(t) |>
   summarize(swimaxis = get_primary_swimming_axis(mxmm, mymm)) |>
   unnest(swimaxis)
+}
+\seealso{
+\code{\link[=get_midline_center_df]{get_midline_center_df()}}
 }

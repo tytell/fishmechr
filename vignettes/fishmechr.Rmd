@@ -174,6 +174,7 @@ For example, to find the body amplitude, search within each cycle to find the ra
 
 The data set `lampreydata` is included in the `fishmechr` package. Most swimming kinematics
 data sets should have a similar structure:
+
 * A time or frame column. It's often good to keep both in the data set. (Here, these are in `t` and `frame`)
 * A column that identifies the point on the body. This could be a factor variable, with names of each body part (like returned by Sleap or DeepLabCut), as long as there is a clear order from head to tail. Or it could be a numeric variable, with points numbered from 1 to $n$, where 1 is the snout and $n$ is the tail. (here this is in `point`).
 * x and y coordinates of the point. Currently, these algorithms are only designed to work on 2D movements in the horizontal plane. (here these are in `mxmm` and `mymm`, indicating "midline" x and y points in mm)
@@ -234,6 +235,16 @@ lampreydata |>
 ## Get the width
 
 I have digitized the width of an ammocoete from the ventral view. We assume here that the width is the distance from one lateral edge to the other (like a diameter), not the distance from the center to an edge (like a radius). Here it's expressed in terms of body lengths, both along the body and for the width itself.
+
+Initially, the width is in a separate data frame. It should have a column for
+arclength (here, `s`) and a column for width. This one has columns for eels and
+ammocoetes. It's simplest if `s` and width are both normalized relative to body
+length (so `s` should range from 0 to 1, and width should be around 0.05-0.1 BL
+for most fishes).
+```{r}
+fishwidth
+```
+
 ```{r}
 fishwidth |> 
   ggplot(aes(x = s, y = ammowidth)) +
@@ -241,11 +252,23 @@ fishwidth |>
   labs(x = 'Arc length (BL)', y = 'Width (BL)')
 ```
 
+Here, we interpolated the width from the separate data frame so that it's defined
+at the right arc lengths for our lamprey data set. `interpolate_width` assumes
+that `arclen` is in real units (like cm) and goes from the head to the tip
+of the tail, so that the last value represents the total length of the fish. Once the width is interpolated at the new arc lengths, it also multiplies the width
+by the total fish length.
 ```{r}
 lampreydata <-
   lampreydata |> 
   group_by(frame) |> 
   mutate(width = interpolate_width(fishwidth$s, fishwidth$ammowidth, arclen))
+```
+
+We just added another column to `lampreydata` containing the width at each
+arclength along the body, defined in mm because the arc length is in mm.
+```{r}
+lampreydata |> 
+  dplyr::filter(frame == 10)
 ```
 
 ## Compute the center of mass
