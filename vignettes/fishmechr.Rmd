@@ -36,12 +36,12 @@ To compute midline swimming kinematics accurately, follow the steps below.
 ## 1. Compute arc length
 
 Most kinematic variables are best specified in terms of arc length $s$, the distance along the body from the head to a particular point $i$:
-$$ s_i = \sum_{j=2}^i \left[ (x_j - x_{j-1})^2 + (y_j - y_{j-1})^2 \right] $$
+$$ s_i = \sum_{j=1}^{i-1} \left[ (x_{j+1} - x_{j})^2 + (y_{j+1} - y_{j})^2 \right], s_1 = 0 $$
 Using arc length is better than something like the $x$ coordinate for two reasons. First, often a fish does not swim precisely along the $x$ axis, which means that the points would need to be rotated. Second, many fish swim with relatively large amplitude motions, which means that the distance along the curve is larger than the distance along the swimming direction, particularly near the tail where amplitudes are higher.
 
 ## 2. Interpolate points for a consistent position
 
-Ideally, we want each point to represent a consistent location on the fish's body. Particularly with fish that do not have clear landmarks along the body, we may be able to mark the middle easily, but at points that may slide along the fish's length. We can use a spline to interpolate points at a consistent location.
+Ideally, we want each point to represent a consistent location on the fish's body. Particularly with fish that do not have clear landmarks along the body, we may be able to mark the middle easily between the left and right side, but at points that may not be consistent along the fish's length. We can use a spline to interpolate points at a consistent location.
 
 Digitized points often have some error. As part of the interpolation process, we can use a smoothing spline to smooth out some of that error.
 
@@ -52,7 +52,7 @@ The center location is a weighted average location. For a midline defined by $x$
 1. If $m_i$ is the mass of segment located between $(x_i, y_i)$ and $(x_{i+1}, y_{i+1})$, then
 $$ x_{com} = \frac{1}{2 M} \sum_{i=1}^{n-1} m_i \left( x_{i+1} + x_i \right)  $$
 $$ y_{com} = \frac{1}{2 M} \sum_{i=1}^{n-1} m_i \left( y_{i+1} + y_i \right)  $$
-where $M$ is the total mass of the fish. If you know the mass distribution but not the true masses of segments, you could also use $m_i$ as the fraction of the total mass in segment $i$ and $M$ would be 1.
+where $M$ is the total mass of the fish. If you know the mass distribution but not the true masses of segments, you could also use $m_i$ as the fraction of the total mass in segment $i$ so that $M$ would be 1.
 
 2. If you do not know the mass distribution, then you can approximate $m_i$ in several ways. The best is to use the width and height of the body. If the body, without the fins, has an elliptical cross section, where $w_i$ is the horizontal width and $h_i$ is the dorso-ventral height at point $i$, then the volume of the segment from $(x_i, y_i)$ and $(x_{i+1}, y_{i+1})$ is
 $$ V_i = \pi \Delta s_i \left( w_i h_i + \tfrac{1}{2} \Delta w_i h_i +
@@ -64,7 +64,7 @@ $$ x_{com} = \frac{\sum_{i=1}^{n-1} \left[ V_i \left( x_{i+1} + x_i \right) \rig
 $$ y_{com} = \frac{\sum_{i=1}^{n-1} \left[ V_i \left( y_{i+1} + y_i \right) \right] } 
 { 2 \sum_{i=1}^{n-1} V_i } $$
 
-3. Often the width is visible from a camera from above or below, but the height is not known. In this case, a reasonable approximation is that $m_i \propto w_i$, so that
+3. Often the width is visible from a camera from above or below, but the height is not known. In this case, a reasonable approximation (at least for elongate fishes where the height does not vary too much) is that $m_i \propto w_i$, so that
 $$ x_{com} = \frac{\sum_{i=1}^{n} w_i x_i}{\sum_{i=1}^{n} w_i} $$
 $$ y_{com} = \frac{\sum_{i=1}^{n} w_i y_i}{\sum_{i=1}^{n} w_i} $$
 
