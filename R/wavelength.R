@@ -118,3 +118,27 @@ get_wavelength <- function(arclen, ph, unwrap=TRUE, method='deriv',
   }
   wavelen
 }
+
+get_wavelength_dx <- function(x, y, curve)
+{
+  izero <- which(sign(y[1:length(y)-1]) == -sign(y[2:length(y)]))
+
+  if (length(izero) >= 2) {
+    if (length(izero) > 2) {
+      izero <- izero[(length(izero)-1):length(izero)]
+    }
+
+    off <- (x[izero+1] - x[izero]) / (y[izero+1] - y[izero]) * (0 - y[izero])
+    xzero <- x[izero] + off
+
+    wavelen2 <- xzero[2] - xzero[1]
+
+    imaxcurve <- which.max(abs(curve[izero[1]:izero[2]])) + izero[1] - 1
+    wavelenctr <- x[imaxcurve]
+
+    data.frame(wavelen2 = wavelen2, wavelenctr = wavelenctr)
+  } else {
+    data.frame(wavelen2 = NA, wavelenctr = NA)
+  }
+}
+
