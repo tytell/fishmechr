@@ -169,7 +169,7 @@ get_primary_swimming_axis_df <- function(.data, t, x,y,
   ab <-
     left_join(
     .data |>
-      ungroup(!!.frame) |>
+      # ungroup(!!.frame) |>
       select(!!.frame, {{.point}}, {{x}}, {{y}}),
     swimaxis,
     by = rlang::as_name(.frame))
