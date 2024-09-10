@@ -1,0 +1,148 @@
+---
+title: "prickleback_swimming"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{prickleback_swimming}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(fishmechr)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+```
+
+This is an example of processing data from a swimming rock prickleback, *Xiphister mucosus*.
+
+The data was tracked using Sleap (https://sleap.ai/) and comes out in the following format. `frame_idx` is the frame number, and each point along the body is
+identified with the point name and `.x`, `.y`, the coordinate, and `.score`, which is a measure of the estimated accuracy of the point. All of the points together are also given a score (`instance.score`).
+```{r}
+head(xmucosusdata)
+```
+
+# Rearrange the data
+
+We need to rearrange the data into "long" form, where the point names are in
+a separate column, and we have single columns for the `x`, `y`, and `score` values. The function `pivot_kinematics_longer` is a convenience wrapper for `tidyr::pivot_longer` that understands the format of points from Sleap or DeepLabCut.
+
+You need to pass in the names of your points (in order from head to tail) and the name of the column you want to put the point names in.
+```{r}
+pointnames <- c("Snout", "BP1", "BP2", "BP3", "BP4", "BP5", "BP6", "Tail")
+xmucosusdata <- xmucosusdata |> 
+  pivot_kinematics_longer(pointnames = pointnames,
+                          point_to = "bodypart")
+```
+
+```{r}
+head(xmucosusdata)
+```
+
+# Process the data
+
+From here on out, the steps to process the data are quite similar to what is shown in the main vignette.
+
+```{r}
+xmucosusdata |> 
+  filter(frame_idx %in% c(10, 20)) |> 
+  mutate(frame_idx = factor(frame_idx)) |> 
+  ggplot(aes(x = x, y = y, color = frame_idx, group = frame_idx)) +
+  geom_path() +
+  coord_fixed()
+```
+
+## Get arc length
+
+```{r}
+xmucosusdata <-
+  xmucosusdata |> 
+  group_by(frame_idx) |> 
+  mutate(arclen0 = arclength(x, y))
+```
+
+```{r}
+xmucosusdata |> 
+  ungroup() |> 
+  filter(bodypart %in% c("BP2", "BP5", "Tail")) |> 
+  ggplot(aes(x = frame_idx, y = arclen0, color = bodypart)) +
+  geom_point()
+```
+
+## Interpolate to constant arc length
+
+```{r}
+xmucosusdata <- xmucosusdata |> 
+  interpolate_points_df(arclen0, x, y, spar = 0.2,
+                        tailmethod = 'extrapolate',
+                        .frame = frame_idx,
+                        .point = bodypart,
+                        .out = c(arclen='arclen', xs='x_s', ys='y_s'))
+
+```
+
+```{r}
+xmucosusdata |> 
+  filter(frame_idx %in% c(10, 20)) |> 
+  mutate(frame_idx = factor(frame_idx)) |> 
+  ggplot(aes(x = x, y, color = frame_idx, group = frame_idx)) +
+  geom_point(shape = 10) +
+  geom_path() +
+  geom_point(aes(x = x_s, y = y_s), shape = 5) +
+  coord_fixed()
+```
+
+## Interpolate the width
+
+```{r}
+xmucosusdata <-
+  xmucosusdata |> 
+  group_by(frame_idx) |> 
+  mutate(width = interpolate_width(fishwidth$s, fishwidth$eelwidth, arclen))
+```
+
+## Get the center
+
+```{r}
+xmucosusdata <-
+  xmucosusdata |> 
+  get_midline_center_df(arclen, x_s,y_s, width=width,
+                        .frame = frame_idx)
+```
+
+## Get the swimming axis
+
+```{r}
+xmucosusdata <-
+  xmucosusdata |> 
+  mutate(x_ctr = x_s - xcom,
+         y_ctr = y_s - ycom,
+         t = frame_idx / 60) |> 
+  get_primary_swimming_axis_df(t, x_ctr,y_ctr,
+                               .frame = frame_idx,
+                               .point = bodypart)
+```
+
+```{r}
+xmucosusdata |> 
+  filter(frame_idx %in% c(10, 20, 30)) |> 
+  ggplot(aes(x = x, y = y, color = frame_idx)) +
+  geom_path(aes(group = frame_idx)) +
+  geom_segment(data = ~ filter(.x, bodypart == "Tail"), 
+               aes(x = xcom, y = ycom, 
+                   xend = xcom - 50*swimaxis_x, 
+                   yend = ycom - 50*swimaxis_y)) +
+  geom_point(data = ~ filter(.x, bodypart == "Tail"), 
+               aes(x = xcom, y = ycom), color = 'red') +
+  facet_grid(frame_idx ~ .) +
+  coord_fixed()
+
+```
+
