@@ -3,7 +3,8 @@ pkgdown: 2.1.0
 pkgdown_sha: ~
 articles:
   fishmechr: fishmechr.html
-last_built: 2024-08-08T17:18Z
+  prickleback_swimming: prickleback_swimming.html
+last_built: 2024-09-10T21:22Z
 urls:
   reference: https://tytell.github.io/fishmechr/reference
   article: https://tytell.github.io/fishmechr/articles
