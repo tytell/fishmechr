@@ -1,0 +1,66 @@
+---
+title: "process_sleap_data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{process_sleap_data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(fishmechr)
+library(here)
+```
+
+```{r}
+sleapfiles <- c(
+  here("data","2024-11-14_labels2.000_fish_01-030RPM-ortho-2024-11-14T044441.analysis.csv"),
+  here("data","2024-11-14_labels2.001_fish_01-040RPM-ortho-2024-11-14T044525.analysis.csv"),
+  here("data", "2024-11-14_labels2.002_fish_01-050RPM-ortho-2024-11-14T045204.analysis.csv"),
+  here("data","2024-11-14_labels2.003_fish_01-060RPM-ortho-2024-11-14T044754.analysis.csv"),
+  here("data","2024-11-14_labels2.004_fish_01-070RPM-ortho-2024-11-14T044858.analysis.csv")
+)
+```
+
+```{r}
+parse_file_name <- function(fn)
+{
+  d <- str_match(fn, 
+                 "_(?<id>\\w+_\\d+)-(?<speed>\\d+)RPM.+(?<datetime>\\d{4}-\\d{2}-\\d{2}T\\d{6})")
+  
+  as_tibble_row(d[1, 2:4], .name_repair = "minimal")
+}
+```
+
+```{r}
+pointnames <- c("snout", "hyoid", "left_eye", "right_eye", "left_pec_fin_base", 
+"left_pec_fin_tip", "right_pec_fin_base", "right_pec_fin_tip", "pelvic_fin_base",
+"anus", "peduncle", "ventral_caudal", "dorsal_caudal")
+```
+
+```{r}
+zfdata <- map(sleapfiles, \(fn) read_csv(fn, id = "fn", 
+                                         show_col_types = FALSE)) |> 
+  bind_rows()
+```
+
+```{r}
+zfdata |> 
+  mutate(dd = parse_file_name(fn)) |> 
+  unnest(dd) |> 
+  select(-fn) |> 
+  relocate(id, speed, datetime) |> 
+  pivot_kinematics_longer(pointnames = pointnames)
+```
+
+```{r}
+d |> pivot_kinematics_longer(pointnames)
+```
+
