@@ -16,7 +16,14 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(fishmechr)
+library(tidyverse)
 library(here)
+```
+
+```{r}
+library(cli)
+options(cli.progress_show_after = 0)
+options(cli.progress_clear = FALSE)
 ```
 
 ```{r}
@@ -27,6 +34,8 @@ sleapfiles <- c(
   here("data","2024-11-14_labels2.003_fish_01-060RPM-ortho-2024-11-14T044754.analysis.csv"),
   here("data","2024-11-14_labels2.004_fish_01-070RPM-ortho-2024-11-14T044858.analysis.csv")
 )
+
+goodframes <- read_csv(here("data", "zfish_goodframes.csv"))
 ```
 
 ```{r}
@@ -52,15 +61,117 @@ zfdata <- map(sleapfiles, \(fn) read_csv(fn, id = "fn",
 ```
 
 ```{r}
-zfdata |> 
-  mutate(dd = parse_file_name(fn)) |> 
+zfdata <- zfdata |> 
+  mutate(dd = map(fn, parse_file_name)) |> 
   unnest(dd) |> 
-  select(-fn) |> 
+  mutate(fn = basename(fn),
+         speed = as.numeric(speed)) |> 
   relocate(id, speed, datetime) |> 
   pivot_kinematics_longer(pointnames = pointnames)
 ```
 
 ```{r}
-d |> pivot_kinematics_longer(pointnames)
+zfdata_good <- list()
+for (i in seq(1, nrow(goodframes))) {
+  good1 <- zfdata |> 
+    filter(fn == goodframes$File[[i]],
+           between(frame_idx, goodframes$Start[[i]], goodframes$End[[i]]))
+  zfdata_good[[i]] <- good1
+}
+zfdata_good <- bind_rows(zfdata_good)
+```
+
+```{r}
+add_centers <- function(df) {
+  r1 <- df[1,] |>
+    mutate(point = factor("eye_ctr", levels = levels(df$point)),
+          x = mean(df$x[str_detect(df$point, "eye")]),
+          y = mean(df$y[str_detect(df$point, "eye")]),
+          score = NA)
+
+  r2 <- df[1,] |>
+    mutate(point = factor("pec_fin_ctr", levels = levels(df$point)),
+          x = mean(df$x[str_detect(df$point, "pec_fin_base")]),
+          y = mean(df$y[str_detect(df$point, "pec_fin_base")]),
+          score = NA)
+  
+  df |> 
+  add_row(r1) |> 
+  add_row(r2)
+}
+```
+
+```{r}
+zfdata_ctr <-
+  zfdata_good |> 
+  # filter(speed == 30,
+  #        frame_idx == 121) |>
+  group_by(speed, frame_idx) |>
+  mutate(point = fct_expand(point, "eye_ctr", after = 1),
+         point = fct_expand(point, "pec_fin_ctr", after = 4)) |> 
+  group_modify(\(df, k) add_centers(df))
+  # add_centers()
+```
+
+```{r}
+zfdata_ctr |> 
+  arrange(speed, frame_idx, point) |> 
+  filter(speed == 30,
+         between(frame_idx, 120, 140)) |> 
+  filter(point %in% c("snout", "hyoid", "eye_ctr", "pec_fin_ctr", 
+                      "pelvic_fin_base", "anus", "peduncle", "ventral_caudal")) |> 
+  ggplot(aes(x = x, y = y, color = point)) +
+  geom_point() +
+  geom_path(aes(group = frame_idx)) +
+  coord_fixed()
+```
+
+```{r}
+zfdata_ctr |> 
+  arrange(speed, frame_idx, point) |> 
+  filter(speed == 30,
+         between(frame_idx, 120, 250)) |> 
+  filter(point %in% c("snout", "peduncle", "ventral_caudal")) |> 
+  ggplot(aes(x = frame_idx, y = y, color = point)) +
+  geom_point() +
+  geom_path()
+```
+
+```{r}
+zfdata_sm <-
+  zfdata_ctr |> 
+  arrange(speed, frame_idx, point) |> 
+  filter(point %in% c("snout", "hyoid", "eye_ctr", "pec_fin_ctr", 
+                      "pelvic_fin_base", "anus", "peduncle", "ventral_caudal")) |> 
+  # filter(fn == "2024-11-14_labels2.000_fish_01-030RPM-ortho-2024-11-14T044441.analysis.csv",
+  #        between(frame_idx, 1, 10)) |>
+  group_by(fn, frame_idx) |>
+  mutate(arclen0 = arclength(x, y, na.skip = TRUE)) |> 
+  interpolate_points_df(arclen0, x, y, spar = 0.2,
+                        tailmethod = 'extrapolate',
+                        fill_gaps = 1,
+                        .frame = frame_idx,
+                        .out = c(arclen='arclen', xs='xs', ys='ys')) |> 
+  ungroup()
+  
+```
+
+```{r}
+zfdata_sm |> 
+  ungroup() |> 
+  filter(point %in% c("snout", "peduncle")) |> 
+  select(point, starts_with("x"), starts_with("arc"))
+```
+
+```{r}
+zfdata_sm |> 
+  arrange(speed, frame_idx, point) |> 
+  filter(speed == 30,
+         between(frame_idx, 120, 250)) |> 
+  filter(point %in% c("snout", "peduncle", "ventral_caudal")) |> 
+  ggplot(aes(x = frame_idx, y = ys, color = point)) +
+  geom_point() +
+  geom_path()
+
 ```
 

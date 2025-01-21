@@ -16,17 +16,33 @@
 #'   group_by(frame) |>
 #'   mutate(arclen = arclength(mxmm, mymm))
 #'
-arclength <- function(x, y)
+arclength <- function(x, y,
+                      na.skip = FALSE)
 {
   assertthat::assert_that(length(x) == length(y))
 
-  if (any(!is.finite(x)) | any(!is.finite(y))) {
-    s <- rep(NA, length(x))
-  } else {
+  good <- is.finite(x) & is.finite(y)
+  if (all(good)) {
     s <- rep(0, length(x))
     ds <- sqrt(diff(x)^2 + diff(y)^2)
     s[2:length(s)] <- cumsum(ds)
   }
+  else if (any(!good) & !na.skip) {
+    s <- rep(NA, length(x))
+  }
+  else {
+    x1 <- x[good]
+    y1 <- y[good]
+
+    s1 <- rep(0, length(x1))
+
+    ds1 <- sqrt(diff(x1)^2 + diff(y1)^2)
+    s1[2:length(s1)] <- cumsum(ds1)
+
+    s <- rep(NA, length(x))
+    s[good] <- s1
+  }
+
   s
 }
 
@@ -41,6 +57,8 @@ arclength <- function(x, y)
 #' @param arclen_out New arc length
 #' @param spar Smoothing parameter (ranges from 0 for no smoothing to 1 for
 #'   high smoothing; see [smooth.spline()] for more details.)
+#' @param fill_gaps Fill internal missing points of this size or smaller.
+#'   (0, default, means no filling; 1 means to fill single missing points)
 #'
 #' @returns A tibble containing the new interpolated and smoothed x and y
 #'   coordinates as columns `xs` and `ys`
@@ -48,25 +66,61 @@ arclength <- function(x, y)
 #'
 #' @examples
 interpolate_points_frame <- function(arclen, x,y, arclen_out,
-                                     spar = 0.1)
+                                     spar = 0.1, fill_gaps = 0)
 {
   assertthat::assert_that(length(x) == length(y))
 
   xs <- numeric(length(x))
   ys <- numeric(length(y))
 
-  good <- is.finite(x) & is.finite(y)
+  good <- is.finite(arclen) & is.finite(x) & is.finite(y)
+  fillpts <- good
 
-  if (any(good)) {
+  if (sum(good) >= 4) {
+    if (any(!good) & (fill_gaps > 0)) {
+      gapn <- rep_along(arclen, 0)
+
+      for (i in seq(2, length(good))) {
+        if (!good[i]) {
+          gapn[i] <- gapn[i-1] + 1
+        }
+      }
+
+      # don't fill gaps that go all the way to the end
+      i <- length(good)
+      while (!good[i] & (i > 1)) {
+        fillpts[i] <- FALSE
+        i <- i-1
+      }
+      i <- i-1
+
+      gapsz <- 0
+      while (i > 1) {
+        if ((gapn[i] > 0) & (gapn[i+1] == 0)) {
+          gapsz <- gapn[i]
+        } else if (gapn[i] == 0) {
+          gapsz <- 0
+        }
+        gapn[i] <- gapsz
+        i <- i-1
+      }
+
+      nfill <- sum((gapn > 0) & (gapn <= fill_gaps), na.rm = TRUE)
+      if (nfill > 0) {
+        fillpts[gapn <= fill_gaps] <- TRUE
+        cli::cli_alert_info("Filled {nfill} points")
+      }
+    }
+
     spx <- smooth.spline(arclen[good], x[good], spar = spar)
     spy <- smooth.spline(arclen[good], y[good], spar = spar)
 
-    xs[good] = predict(spx, x = arclen_out)$y
-    ys[good] = predict(spy, x = arclen_out)$y
+    xs[fillpts] = predict(spx, x = arclen_out[fillpts])$y
+    ys[fillpts] = predict(spy, x = arclen_out[fillpts])$y
   }
 
-  xs[!good] <- NA
-  ys[!good] <- NA
+  xs[!fillpts] <- NA
+  ys[!fillpts] <- NA
 
   tibble(xs = xs, ys = ys)
 }
@@ -94,6 +148,8 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
 #'   * 'extrapolate' to extrapolate a tail tip position, assuming that the
 #'     curve continues straight
 #'   * 'NA' to use replace the tail point with NA in this case.
+#' @param fill_gaps Fill internal missing points of this size or smaller.
+#'   (0, default, means no filling; 1 means to fill single missing points)
 #' @param .suffix (default = '_s') Suffix to append to the names of the
 #'   arclen, x, and y columns after smoothing and interpolation.
 #' @param .out Names of the output columns. Defaults are
@@ -113,6 +169,7 @@ interpolate_points_df <- function(.data, arclen, x,y,
                                   arclen_out = NULL,
                                   spar = 0.8,
                                   tailmethod = "extrapolate",
+                                  fill_gaps = 0,
                                   .suffix = "_s",
                                   .out = NULL,
                                   overwrite = TRUE,
@@ -152,7 +209,8 @@ interpolate_points_df <- function(.data, arclen, x,y,
 
   df <- .data |>
     group_by({{.frame}}, .add = TRUE) |>
-    mutate(xys = list(interpolate_points_frame({{arclen}}, {{x}},{{y}}, arclen_out, spar)),
+    mutate(xys = list(interpolate_points_frame({{arclen}}, {{x}},{{y}},
+                                               arclen_out, spar, fill_gaps = fill_gaps)),
            "{.out[1]}" := arclen_out,
            "{.out[2]}" := xys[[1]]$xs,
            "{.out[3]}" := xys[[1]]$ys) |>
