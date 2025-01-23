@@ -93,9 +93,11 @@ get_midline_center_df <- function(.data, arclen, x, y, mass,width,height,
       fcn(V = get_volume({{arclen}}, !!width, !!height),
           sumV = sum(V, na.rm = TRUE),
 
-          data.table::`:=`("{.out[1]}", sum({{V}} * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV)),
-          data.table::`:=`("{.out[2]}", sum({{V}} * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV))) |>
-      select(-c(ds,dw,dh,V,sumV))
+          "{.out[1]}" := sum(V * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV),
+          "{.out[2]}" := sum(V * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV)) |>
+          # data.table::`:=`("{.out[1]}", sum(V * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV)),
+          # data.table::`:=`("{.out[2]}", sum(V * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV))) |>
+      select(-c(V,sumV))
   }
   else if (!missing(width) & missing(height)) {
     message("Estimating center of mass based on width")

@@ -108,7 +108,6 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
       nfill <- sum((gapn > 0) & (gapn <= fill_gaps), na.rm = TRUE)
       if (nfill > 0) {
         fillpts[gapn <= fill_gaps] <- TRUE
-        cli::cli_alert_info("Filled {nfill} points")
       }
     }
 

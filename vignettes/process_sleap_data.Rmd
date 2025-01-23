@@ -36,6 +36,8 @@ sleapfiles <- c(
 )
 
 goodframes <- read_csv(here("data", "zfish_goodframes.csv"))
+
+fps <- 50
 ```
 
 ```{r}
@@ -75,7 +77,8 @@ zfdata_good <- list()
 for (i in seq(1, nrow(goodframes))) {
   good1 <- zfdata |> 
     filter(fn == goodframes$File[[i]],
-           between(frame_idx, goodframes$Start[[i]], goodframes$End[[i]]))
+           between(frame_idx, goodframes$Start[[i]], goodframes$End[[i]])) |> 
+    mutate(block = goodframes$Block[[i]])
   zfdata_good[[i]] <- good1
 }
 zfdata_good <- bind_rows(zfdata_good)
@@ -158,13 +161,6 @@ zfdata_sm <-
 
 ```{r}
 zfdata_sm |> 
-  ungroup() |> 
-  filter(point %in% c("snout", "peduncle")) |> 
-  select(point, starts_with("x"), starts_with("arc"))
-```
-
-```{r}
-zfdata_sm |> 
   arrange(speed, frame_idx, point) |> 
   filter(speed == 30,
          between(frame_idx, 120, 250)) |> 
@@ -172,6 +168,134 @@ zfdata_sm |>
   ggplot(aes(x = frame_idx, y = ys, color = point)) +
   geom_point() +
   geom_path()
+
+```
+
+```{r}
+zebrafish_shape |> 
+  ggplot(aes(x = s)) +
+  geom_path(aes(y = width)) +
+  geom_path(aes(y = height), color = "blue")
+```
+
+```{r}
+zfdata_sm <- zfdata_sm |> 
+  group_by(id, speed, datetime, frame_idx) |> 
+  mutate(width = interpolate_width(zebrafish_shape$s,
+                                   zebrafish_shape$width,
+                                   arclen),
+         height = interpolate_width(zebrafish_shape$s,
+                                   zebrafish_shape$height,
+                                   arclen)
+         )
+```
+
+```{r}
+zfdata_sm |> 
+  filter(speed ==30,
+         frame_idx == 150)
+```
+
+```{r}
+zfdata_split <-
+  zfdata_sm |> 
+  group_by(id, speed, datetime, block) |> 
+  group_split()
+
+zfdata_ctr <- list()
+for (i in seq(1, length(zfdata_split))) {
+  zfdata_ctr[[i]] <-
+    zfdata_split[[i]] |> 
+    get_midline_center_df(arclen, xs, ys,
+                          width = width, height = height,
+                          .frame = frame_idx) |> 
+    mutate(xctr = xs - xcom,
+           yctr = ys - ycom,
+           t = frame_idx / fps) |> 
+    get_primary_swimming_axis_df(t, xctr, yctr, 
+                                 .frame = frame_idx)
+}
+
+zfdata_ctr <- bind_rows(zfdata_ctr)
+```
+
+```{r}
+zfdata_ctr |> 
+  filter(speed == 30,
+         block == 1) |> 
+         # point %in% c("snout", "ventral_caudal")) |> 
+  # filter(between(t, 1, 1.2)) |> 
+  ggplot(aes(x = exc_x, y = exc, color = frame_idx)) +
+  geom_path(aes(group = frame_idx))
+```
+
+```{r}
+zfdata_ctr |> 
+  filter(speed == 30,
+         block == 1,
+         point %in% c("snout", "ventral_caudal")) |> 
+  # filter(between(t, 1, 1.2)) |> 
+  ggplot(aes(x = t, y = exc, color = point)) +
+  geom_path()
+```
+
+```{r}
+zfdata_phase <-
+zfdata_ctr |> 
+  arrange(id, speed, datetime, frame_idx, desc(point)) |> 
+  group_by(id, speed, datetime, point) |> 
+  mutate(ph_e = hilbert_phase(exc),
+         ph_p = peak_phase(exc))
+```
+
+```{r}
+zfdata_phase |> 
+  filter(speed == 30,
+         block == 1) |> 
+  ungroup() |> 
+  filter(point %in% c("snout", "peduncle", "ventral_caudal")) |> 
+  mutate(point = factor(point)) |> 
+  pivot_longer(cols = c(ph_e, ph_p), names_to = "method", values_to = "phase") |> 
+  ggplot(aes(x = t, y = phase, color = point, linetype = method)) +
+  geom_path() + 
+  facet_wrap(~point)
+```
+
+```{r}
+zfdata_phase |> 
+  filter(speed == 30,
+         block == 1) |> 
+  ungroup() |> 
+  group_by(point) |> 
+  mutate(freq_p = get_frequency(t, ph_p, method='deriv')) |> 
+  filter(point %in% c("snout", "peduncle", "ventral_caudal")) |> 
+  ggplot(aes(x = t, y = freq_p, color = point)) +
+  scale_shape_manual(values = c(1, 17, 22)) +
+  geom_point() +
+  facet_wrap(~point)
+```
+
+```{r}
+zfdata_cyc <-
+  zfdata_phase |> 
+  group_by(id, speed, datetime, block) |> 
+  get_body_cycle_numbers_df(ph_p, pointval = "peduncle",
+                            .frame = frame_idx) |> 
+  arrange(id, speed, datetime, block, t, point)
+
+zfdata_cyc
+```
+
+```{r}
+zfdata_cyc |> 
+  filter(#speed == 30,
+         block == 1) |> 
+  ungroup() |> 
+  group_by(speed, point, cycle) |> 
+  summarize(amp = (max(exc) - min(exc)) / 2,
+            arclen = mean(arclen)) |> 
+  ggplot(aes(x = arclen, y = amp, color = speed)) +
+  geom_path(aes(group = cycle))
 
 ```
 
