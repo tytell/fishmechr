@@ -157,9 +157,27 @@ peak_phase <- function(x, unwrap=TRUE,
   }
 
   # positive peaks
-  pkhi <- pracma::findpeaks(x, ...)
+  pkhi <- tryCatch(
+    pracma::findpeaks(x, ...),
+
+    error = function(cond) {
+      warning("No peaks found. Cannot estimate phase")
+      NULL
+    })
+
   # negative peaks (= troughs)
-  pklo <- pracma::findpeaks(-x, ...)
+  pklo <- tryCatch(
+    pracma::findpeaks(-x, ...),
+
+    error = function(cond) {
+      warning("No troughs found. Cannot estimate phase")
+      NULL
+    })
+
+  if (is.null(pkhi) | is.null(pklo)) {
+    ph <- rep_len(NA, length(x))
+    return(ph)
+  }
 
   signlevels <- c('hi', 'down', 'lo', 'up')
 
