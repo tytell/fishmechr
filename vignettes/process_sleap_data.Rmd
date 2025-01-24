@@ -26,6 +26,7 @@ options(cli.progress_show_after = 0)
 options(cli.progress_clear = FALSE)
 ```
 
+These are your SLEAP output data files
 ```{r}
 sleapfiles <- c(
   here("data","2024-11-14_labels2.000_fish_01-030RPM-ortho-2024-11-14T044441.analysis.csv"),
@@ -36,10 +37,14 @@ sleapfiles <- c(
 )
 
 goodframes <- read_csv(here("data", "zfish_goodframes.csv"))
+```
 
+Frame rate from your cameras
+```{r}
 fps <- 50
 ```
 
+Process the file name
 ```{r}
 parse_file_name <- function(fn)
 {
@@ -50,12 +55,15 @@ parse_file_name <- function(fn)
 }
 ```
 
+These are all our points, ordered from head to tail
 ```{r}
-pointnames <- c("snout", "hyoid", "left_eye", "right_eye", "left_pec_fin_base", 
-"left_pec_fin_tip", "right_pec_fin_base", "right_pec_fin_tip", "pelvic_fin_base",
-"anus", "peduncle", "ventral_caudal", "dorsal_caudal")
+pointnames <- c("snout", "eye_ctr", "left_eye", "right_eye", "hyoid",   
+                "pec_fin_ctr", "left_pec_fin_base", "left_pec_fin_tip", 
+                "right_pec_fin_base", "right_pec_fin_tip", "pelvic_fin_base",
+                "anus", "peduncle", "ventral_caudal", "dorsal_caudal")
 ```
 
+Load in all the data files and bind them together in one big table.
 ```{r}
 zfdata <- map(sleapfiles, \(fn) read_csv(fn, id = "fn", 
                                          show_col_types = FALSE)) |> 
@@ -63,19 +71,41 @@ zfdata <- map(sleapfiles, \(fn) read_csv(fn, id = "fn",
 ```
 
 ```{r}
-zfdata <- zfdata |> 
+zfdata_ctr <-
+  zfdata |>  
+  mutate(eye_ctr.x = (left_eye.x + right_eye.x)/2,
+         eye_ctr.y = (left_eye.y + right_eye.y)/2,
+         eye_ctr.score = NA,
+         pec_fin_ctr.x = (left_pec_fin_base.x + right_pec_fin_base.x)/2,
+         pec_fin_ctr.y = (left_pec_fin_base.y + right_pec_fin_base.y)/2,
+         pec_fin_ctr.score = NA
+         )
+```
+
+Parse the file name for speed and fish ID
+```{r}
+zfdata_ctr <- zfdata_ctr |> 
   mutate(dd = map(fn, parse_file_name)) |> 
   unnest(dd) |> 
   mutate(fn = basename(fn),
-         speed = as.numeric(speed)) |> 
+         speed = as.numeric(speed)) 
+```
+
+```{r}
+zfdata_ctr <- zfdata_ctr |> 
   relocate(id, speed, datetime) |> 
   pivot_kinematics_longer(pointnames = pointnames)
 ```
 
 ```{r}
+zfdata_ctr
+```
+
+Now pull out just the good frames based on our other data table
+```{r}
 zfdata_good <- list()
 for (i in seq(1, nrow(goodframes))) {
-  good1 <- zfdata |> 
+  good1 <- zfdata_ctr |> 
     filter(fn == goodframes$File[[i]],
            between(frame_idx, goodframes$Start[[i]], goodframes$End[[i]])) |> 
     mutate(block = goodframes$Block[[i]])
@@ -84,40 +114,9 @@ for (i in seq(1, nrow(goodframes))) {
 zfdata_good <- bind_rows(zfdata_good)
 ```
 
+This shows the x and y positions of several of the points in multiple frames.
 ```{r}
-add_centers <- function(df) {
-  r1 <- df[1,] |>
-    mutate(point = factor("eye_ctr", levels = levels(df$point)),
-          x = mean(df$x[str_detect(df$point, "eye")]),
-          y = mean(df$y[str_detect(df$point, "eye")]),
-          score = NA)
-
-  r2 <- df[1,] |>
-    mutate(point = factor("pec_fin_ctr", levels = levels(df$point)),
-          x = mean(df$x[str_detect(df$point, "pec_fin_base")]),
-          y = mean(df$y[str_detect(df$point, "pec_fin_base")]),
-          score = NA)
-  
-  df |> 
-  add_row(r1) |> 
-  add_row(r2)
-}
-```
-
-```{r}
-zfdata_ctr <-
-  zfdata_good |> 
-  # filter(speed == 30,
-  #        frame_idx == 121) |>
-  group_by(speed, frame_idx) |>
-  mutate(point = fct_expand(point, "eye_ctr", after = 1),
-         point = fct_expand(point, "pec_fin_ctr", after = 4)) |> 
-  group_modify(\(df, k) add_centers(df))
-  # add_centers()
-```
-
-```{r}
-zfdata_ctr |> 
+zfdata_good |> 
   arrange(speed, frame_idx, point) |> 
   filter(speed == 30,
          between(frame_idx, 120, 140)) |> 
@@ -129,27 +128,28 @@ zfdata_ctr |>
   coord_fixed()
 ```
 
+This shows just the y coordinate against frame number.
 ```{r}
-zfdata_ctr |> 
+zfdata_good |> 
   arrange(speed, frame_idx, point) |> 
-  filter(speed == 30,
+  filter(speed == 40,
          between(frame_idx, 120, 250)) |> 
   filter(point %in% c("snout", "peduncle", "ventral_caudal")) |> 
   ggplot(aes(x = frame_idx, y = y, color = point)) +
   geom_point() +
   geom_path()
 ```
-
+This smooths the data and fills in gaps. Focus just on the points along the ventral midline for right now.
 ```{r}
 zfdata_sm <-
-  zfdata_ctr |> 
+  zfdata_good |> 
   arrange(speed, frame_idx, point) |> 
   filter(point %in% c("snout", "hyoid", "eye_ctr", "pec_fin_ctr", 
                       "pelvic_fin_base", "anus", "peduncle", "ventral_caudal")) |> 
-  # filter(fn == "2024-11-14_labels2.000_fish_01-030RPM-ortho-2024-11-14T044441.analysis.csv",
-  #        between(frame_idx, 1, 10)) |>
   group_by(fn, frame_idx) |>
+  # calculate the arc length
   mutate(arclen0 = arclength(x, y, na.skip = TRUE)) |> 
+  # smooth and fill gaps
   interpolate_points_df(arclen0, x, y, spar = 0.2,
                         tailmethod = 'extrapolate',
                         fill_gaps = 1,
@@ -162,7 +162,7 @@ zfdata_sm <-
 ```{r}
 zfdata_sm |> 
   arrange(speed, frame_idx, point) |> 
-  filter(speed == 30,
+  filter(speed == 40,
          between(frame_idx, 120, 250)) |> 
   filter(point %in% c("snout", "peduncle", "ventral_caudal")) |> 
   ggplot(aes(x = frame_idx, y = ys, color = point)) +
@@ -171,6 +171,7 @@ zfdata_sm |>
 
 ```
 
+Now we need to find the center of mass. For that we need the width and height of the body at each point along the body. These values are all in fractions of the total length.
 ```{r}
 zebrafish_shape |> 
   ggplot(aes(x = s)) +
@@ -178,6 +179,7 @@ zebrafish_shape |>
   geom_path(aes(y = height), color = "blue")
 ```
 
+Now interpolate and scale these width and height values for the actual length of our fish.
 ```{r}
 zfdata_sm <- zfdata_sm |> 
   group_by(id, speed, datetime, frame_idx) |> 
@@ -196,12 +198,15 @@ zfdata_sm |>
          frame_idx == 150)
 ```
 
+Now we need to split out different swimming sequences
 ```{r}
 zfdata_split <-
   zfdata_sm |> 
   group_by(id, speed, datetime, block) |> 
   group_split()
+```
 
+```{r}
 zfdata_ctr <- list()
 for (i in seq(1, length(zfdata_split))) {
   zfdata_ctr[[i]] <-
@@ -209,62 +214,55 @@ for (i in seq(1, length(zfdata_split))) {
     get_midline_center_df(arclen, xs, ys,
                           width = width, height = height,
                           .frame = frame_idx) |> 
+    # center everything on the center of mass
     mutate(xctr = xs - xcom,
            yctr = ys - ycom,
            t = frame_idx / fps) |> 
+    # find the main axis of the body
     get_primary_swimming_axis_df(t, xctr, yctr, 
                                  .frame = frame_idx)
 }
-
-zfdata_ctr <- bind_rows(zfdata_ctr)
 ```
 
 ```{r}
-zfdata_ctr |> 
-  filter(speed == 30,
-         block == 1) |> 
-         # point %in% c("snout", "ventral_caudal")) |> 
-  # filter(between(t, 1, 1.2)) |> 
-  ggplot(aes(x = exc_x, y = exc, color = frame_idx)) +
-  geom_path(aes(group = frame_idx))
+zfdata_ctr[[2]] |> 
+  ggplot(aes(x = exc_x, y = exc, color = point)) +
+  geom_path(aes(group = frame_idx)) +
+  geom_point()
 ```
 
 ```{r}
-zfdata_ctr |> 
-  filter(speed == 30,
-         block == 1,
-         point %in% c("snout", "ventral_caudal")) |> 
+zfdata_ctr[[2]] |> 
+  filter(point %in% c("peduncle", "ventral_caudal")) |> 
   # filter(between(t, 1, 1.2)) |> 
   ggplot(aes(x = t, y = exc, color = point)) +
   geom_path()
 ```
 
 ```{r}
-zfdata_phase <-
-zfdata_ctr |> 
+zfdata_phase <- list()
+
+for (i in seq(1, length(zfdata_ctr))) {
+  zfdata_phase[[i]] <- 
+  zfdata_ctr[[i]] |> 
   arrange(id, speed, datetime, frame_idx, desc(point)) |> 
   group_by(id, speed, datetime, point) |> 
-  mutate(ph_e = hilbert_phase(exc),
-         ph_p = peak_phase(exc))
+  mutate(ph_p = peak_phase(exc))
+}
 ```
 
 ```{r}
-zfdata_phase |> 
-  filter(speed == 30,
-         block == 1) |> 
+zfdata_phase[[2]] |> 
   ungroup() |> 
   filter(point %in% c("snout", "peduncle", "ventral_caudal")) |> 
   mutate(point = factor(point)) |> 
-  pivot_longer(cols = c(ph_e, ph_p), names_to = "method", values_to = "phase") |> 
-  ggplot(aes(x = t, y = phase, color = point, linetype = method)) +
+  ggplot(aes(x = t, y = ph_p, color = point)) +
   geom_path() + 
   facet_wrap(~point)
 ```
 
 ```{r}
-zfdata_phase |> 
-  filter(speed == 30,
-         block == 1) |> 
+zfdata_phase[[2]] |> 
   ungroup() |> 
   group_by(point) |> 
   mutate(freq_p = get_frequency(t, ph_p, method='deriv')) |> 
@@ -276,26 +274,51 @@ zfdata_phase |>
 ```
 
 ```{r}
-zfdata_cyc <-
-  zfdata_phase |> 
-  group_by(id, speed, datetime, block) |> 
-  get_body_cycle_numbers_df(ph_p, pointval = "peduncle",
-                            .frame = frame_idx) |> 
-  arrange(id, speed, datetime, block, t, point)
+zfdata_cyc <- list()
 
-zfdata_cyc
+for (i in seq(1, length(zfdata_phase))) {
+  zfdata_cyc[[i]] <- 
+    zfdata_phase[[i]] |> 
+    group_by(point) |> 
+    mutate(freq = get_frequency(t, ph_p, method='deriv')) |>
+    ungroup() |> 
+    get_body_cycle_numbers_df(ph_p, pointval = "peduncle",
+                              .frame = frame_idx) |> 
+    arrange(id, speed, datetime, block, t, point)
+}
 ```
 
 ```{r}
-zfdata_cyc |> 
-  filter(#speed == 30,
-         block == 1) |> 
+zfdata_cyc[[1]] |> 
   ungroup() |> 
   group_by(speed, point, cycle) |> 
   summarize(amp = (max(exc) - min(exc)) / 2,
             arclen = mean(arclen)) |> 
   ggplot(aes(x = arclen, y = amp, color = speed)) +
   geom_path(aes(group = cycle))
+
+```
+
+```{r}
+zfdata_cyc <- bind_rows(zfdata_cyc)
+```
+
+```{r}
+zfdata_cyc |> 
+  group_by(id, datetime, speed, frame_idx) |> 
+  mutate(meanfreq = mean(freq)) |> 
+  filter(point == "ventral_caudal") |> 
+  group_by(speed, cycle) |> 
+  summarize(amp = (max(exc) - min(exc)) / 2,
+            arclen = mean(arclen),
+            meanfreq = mean(meanfreq)) |> 
+  ungroup() |> 
+  ggplot(aes(x = speed, y = amp)) +
+  geom_boxplot(aes(group = factor(speed)))
+  
+```
+
+```{r}
 
 ```
 
