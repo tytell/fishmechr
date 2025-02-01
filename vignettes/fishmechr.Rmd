@@ -19,6 +19,7 @@ library(fishmechr)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(patchwork)
 ```
 
 # Computing kinematic parameters
@@ -380,6 +381,81 @@ lampreydata |>
   facet_wrap(~point)
 ```
 Note that the curvature based phase (solid line) tends to fluctuate a lot for point 3, which is near the head where curvature is small.
+
+### Example phase figure
+
+```{r}
+examplet <- 1.2
+colors <- c("#1f78b4", "black")
+
+p1 <- lampreydata |> 
+  ungroup() |> 
+  filter(point %in% c(13, 15)) |> 
+  mutate(point = factor(point)) |> 
+  ggplot(aes(x = t, y = exc, color = point, linetype = point)) +
+  geom_path(aes(group = point)) +
+  geom_vline(xintercept = examplet) +
+  scale_color_manual(values = colors) +
+  theme_minimal() +
+  xlim(c(1,1.5)) +
+  labs(x = "Time (s)", y = "Excursion (mm)") +
+  theme(legend.position="none",
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p2 <- lampreydata |> 
+  ungroup() |> 
+  filter(point %in% c(13, 15)) |> 
+  mutate(point = factor(point),
+         ph_e = (ph_e %% (2*pi)) / (2*pi)) |> 
+  ggplot(aes(x = t, y = ph_e, color = point, linetype = point)) +
+  geom_path(aes(group = point)) +
+  geom_vline(xintercept = examplet) +
+  scale_color_manual(values = colors) +
+  xlim(c(1,1.5)) +
+  ylim(0,1) +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "Phase") +
+  theme(legend.position="none",
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+
+p3 <- lampreydata |> 
+  ungroup() |> 
+  mutate(point = factor(point)) |> 
+  filter(near(t, examplet, tol = 0.001)) |> 
+  ggplot(aes(y = exc, x = exc_x)) +
+  geom_path() +
+  geom_point(data = ~ filter(.x, point %in% c(13, 15)),
+             aes(color = point, shape = point)) +
+  scale_color_manual(values = colors) +
+  scale_shape_manual(values = c(19, 5)) +
+  coord_fixed() +
+  theme_minimal() +
+  theme(legend.position="none")
+
+p4 <- lampreydata |> 
+  ungroup() |> 
+  mutate(point = factor(point)) |> 
+  filter(near(t, examplet, tol = 0.001)) |> 
+  mutate(ph_eu = (gsignal::unwrap(ph_e) / (2*pi)) %% 1) |> 
+  ggplot(aes(y = ph_eu, x = arclen)) +
+  geom_path() + #color = "#1b9e77") +
+  geom_point(data = ~ filter(.x, point %in% c(13, 15)),
+             aes(color = point, shape = point)) +
+  scale_color_manual(values = colors) +
+  scale_shape_manual(values = c(19, 5)) +
+  ylim(0,1) +
+  theme_minimal() +
+  labs(x = "Arc length (mm)", y = "Phase") +
+  theme(legend.position="none",
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank())
+  # scale_y_continuous(transform = "reverse") 
+
+p1 + p3 + p2 + p4 +
+  plot_layout(nrow = 2, heights = c(1,2))
+```
 
 ## Frequency
 
