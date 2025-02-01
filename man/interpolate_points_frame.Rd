@@ -4,7 +4,7 @@
 \alias{interpolate_points_frame}
 \title{Interpolates x and y points on a curve to different arc lengths}
 \usage{
-interpolate_points_frame(arclen, x, y, arclen_out, spar = 0.1)
+interpolate_points_frame(arclen, x, y, arclen_out, spar = 0.1, fill_gaps = 0)
 }
 \arguments{
 \item{arclen}{Input arc length}
@@ -15,6 +15,9 @@ interpolate_points_frame(arclen, x, y, arclen_out, spar = 0.1)
 
 \item{spar}{Smoothing parameter (ranges from 0 for no smoothing to 1 for
 high smoothing; see \code{\link[=smooth.spline]{smooth.spline()}} for more details.)}
+
+\item{fill_gaps}{Fill internal missing points of this size or smaller.
+(0, default, means no filling; 1 means to fill single missing points)}
 }
 \value{
 A tibble containing the new interpolated and smoothed x and y

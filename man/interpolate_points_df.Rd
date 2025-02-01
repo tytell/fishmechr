@@ -12,6 +12,7 @@ interpolate_points_df(
   arclen_out = NULL,
   spar = 0.8,
   tailmethod = "extrapolate",
+  fill_gaps = 0,
   .suffix = "_s",
   .out = NULL,
   overwrite = TRUE,
@@ -42,6 +43,9 @@ requested arc length
 curve continues straight
 \item 'NA' to use replace the tail point with NA in this case.
 }}
+
+\item{fill_gaps}{Fill internal missing points of this size or smaller.
+(0, default, means no filling; 1 means to fill single missing points)}
 
 \item{.suffix}{(default = '_s') Suffix to append to the names of the
 arclen, x, and y columns after smoothing and interpolation.}

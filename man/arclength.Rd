@@ -4,7 +4,7 @@
 \alias{arclength}
 \title{Calculate arc length along a 2D curve}
 \usage{
-arclength(x, y)
+arclength(x, y, na.skip = FALSE)
 }
 \arguments{
 \item{x, y}{Coordinates of the curve.}
