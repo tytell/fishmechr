@@ -8,9 +8,8 @@ test_that("check oval cylinder", {
   )
 
   expect_equal(
-    get_volume(cyl, arclen, width, height) |>
-      dplyr::summarize(V = sum(V, na.rm = TRUE)) |>
-      dplyr::pull(V),
+    with(cyl, get_volume(arclen, width, height)) |>
+      sum(na.rm = TRUE),
     pi * 2 * 1 * 0.5)
 })
 
@@ -24,9 +23,8 @@ test_that("check oval cylinder with uneven segments", {
   )
 
   expect_equal(
-    get_volume(cyl, arclen, width, height) |>
-      dplyr::summarize(V = sum(V, na.rm = TRUE)) |>
-      dplyr::pull(V),
+    with(cyl, get_volume(arclen, width, height)) |>
+      sum(na.rm = TRUE),
     pi * 2 * 1 * 0.5)
 })
 
@@ -43,9 +41,8 @@ test_that("check circular cone", {
   )
 
   expect_equal(
-    get_volume(cyl, arclen, width, height) |>
-      dplyr::summarize(V = sum(V, na.rm = TRUE)) |>
-      dplyr::pull(V),
+    with(cyl, get_volume(arclen, width, height)) |>
+      sum(na.rm = TRUE),
     1/3 * pi * r^2 * h,
     tolerance = 1e-6)
 })
@@ -63,9 +60,8 @@ test_that("check circular cone pointed the other way", {
   )
 
   expect_equal(
-    get_volume(cyl, arclen, width, height) |>
-      dplyr::summarize(V = sum(V, na.rm = TRUE)) |>
-      dplyr::pull(V),
+    with(cyl, get_volume(arclen, width, height)) |>
+      sum(na.rm = TRUE),
     1/3 * pi * r^2 * h,
     tolerance = 1e-6)
 })
@@ -85,9 +81,8 @@ test_that("check elliptical cone pointed the other way", {
   )
 
   expect_equal(
-    get_volume(cyl, arclen, width, height) |>
-      dplyr::summarize(V = sum(V, na.rm = TRUE)) |>
-      dplyr::pull(V),
+    with(cyl, get_volume(arclen, width, height)) |>
+      sum(na.rm = TRUE),
     1/3 * pi * a * b * h,
     tolerance = 1e-6)
 })
