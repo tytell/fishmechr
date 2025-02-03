@@ -78,7 +78,7 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
 
   if (sum(good) >= 4) {
     if (any(!good) & (fill_gaps > 0)) {
-      gapn <- rep_along(arclen, 0)
+      gapn <- rep_len(0, length.out = length(arclen))
 
       for (i in seq(2, length(good))) {
         if (!good[i]) {
