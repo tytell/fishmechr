@@ -198,7 +198,7 @@ peak_phase <- function(x, unwrap=TRUE,
       ipk1 <- ipk[j]
       ipkoff[j] <- interpolate_peak_location(x[(ipk1-1):(ipk1+1)])
     }
-    good <- (ipkoff >= -1) & (ipkoff <= 1)
+    good <- !is.na(ipkoff) & (ipkoff >= -1) & (ipkoff <= 1)
 
     pk <- pk[good]
     ipk <- ipk[good]
