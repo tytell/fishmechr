@@ -48,11 +48,11 @@
 <span>  <span class="va">t</span>,</span>
 <span>  <span class="va">x</span>,</span>
 <span>  <span class="va">y</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  overwrite <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  .out <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  .frame <span class="op">=</span> <span class="va">frame</span>,</span>
 <span>  .point <span class="op">=</span> <span class="va">point</span>,</span>
-<span>  cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  overwrite <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  check_reasonableness <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -75,6 +75,11 @@ then this variable will be used to get the sampling frequency.</p></dd>
 the midline.</p></dd>
 
 
+<dt id="arg-cutoff">cutoff<a class="anchor" aria-label="anchor" href="#arg-cutoff"></a></dt>
+<dd><p>(optional) If this parameter is included, smooth the swimming
+axis data with a low-pass filter with a cutoff at this frequency.</p></dd>
+
+
 <dt id="arg--out">.out<a class="anchor" aria-label="anchor" href="#arg--out"></a></dt>
 <dd><p>Names of the output columns. Needs to have four elements specifying
 the names for the x and y coordinates of the swim axis and the parallel and
@@ -87,11 +92,6 @@ defaults are 'swimaxis_x', 'swimaxis_y', 'exc_x', and 'exc_y')</p></dd>
 <dt id="arg--frame-point">.frame, .point<a class="anchor" aria-label="anchor" href="#arg--frame-point"></a></dt>
 <dd><p>Columns identifying frames and points (defaults are <code>frame</code>
 and <code>point</code>)</p></dd>
-
-
-<dt id="arg-cutoff">cutoff<a class="anchor" aria-label="anchor" href="#arg-cutoff"></a></dt>
-<dd><p>(optional) If this parameter is included, smooth the swimming
-axis data with a low-pass filter with a cutoff at this frequency.</p></dd>
 
 </dl></div>
     <div class="section level2">
