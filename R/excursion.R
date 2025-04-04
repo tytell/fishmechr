@@ -89,9 +89,9 @@ get_primary_swimming_axis <- function(x, y, center=TRUE)
 #' @concept pipeline
 #' @export
 get_primary_swimming_axis_df <- function(.data, t, x,y,
+                                         cutoff=NULL, overwrite=TRUE,
                                          .out = NULL,
                                          .frame=frame, .point=point,
-                                         cutoff=NULL, overwrite=TRUE,
                                          check_reasonableness=TRUE)
 {
   .out <- check.out(.data, .out,
@@ -119,7 +119,7 @@ get_primary_swimming_axis_df <- function(.data, t, x,y,
         xsd = sd({{x}}, na.rm = TRUE),
         yctr = mean({{y}}, na.rm = TRUE),
         ysd = sd({{y}}, na.rm = TRUE)
-        ) |>
+      ) |>
       summarize(notcenterx = sum(xctr > xsd, na.rm = TRUE) / n(),
                 notcentery = sum(yctr > ysd, na.rm = TRUE) / n())
 
@@ -132,7 +132,7 @@ get_primary_swimming_axis_df <- function(.data, t, x,y,
   swimaxis <-
     .data |>
     group_by(!!.frame, .add = TRUE) |>
-    summarize(swimaxis = get_primary_swimming_axis({{x}},{{y}}),
+    summarize(swimaxis = get_primary_swimming_axis({{x}},{{y}}, center=FALSE),
               t = first({{t}})) |>
     tidyr::unnest(swimaxis)
 

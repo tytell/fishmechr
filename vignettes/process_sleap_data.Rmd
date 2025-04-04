@@ -304,7 +304,8 @@ zfdata_cyc <- bind_rows(zfdata_cyc)
 ```
 
 ```{r}
-zfdata_cyc |> 
+zfsummary <-
+  zfdata_cyc |> 
   group_by(id, datetime, speed, frame_idx) |> 
   mutate(meanfreq = mean(freq)) |> 
   filter(point == "ventral_caudal") |> 
@@ -312,10 +313,13 @@ zfdata_cyc |>
   summarize(amp = (max(exc) - min(exc)) / 2,
             arclen = mean(arclen),
             meanfreq = mean(meanfreq)) |> 
-  ungroup() |> 
-  ggplot(aes(x = speed, y = amp)) +
-  geom_boxplot(aes(group = factor(speed)))
+  ungroup()
+
+zfsummary |> 
+  ggplot(aes(x = speed, y = meanfreq)) +
+  geom_point(aes(group = factor(speed)))
   
+write.csv(zfsummary, "zfsummary.csv")
 ```
 
 ```{r}

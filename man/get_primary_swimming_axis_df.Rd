@@ -9,11 +9,11 @@ get_primary_swimming_axis_df(
   t,
   x,
   y,
+  cutoff = NULL,
+  overwrite = TRUE,
   .out = NULL,
   .frame = frame,
   .point = point,
-  cutoff = NULL,
-  overwrite = TRUE,
   check_reasonableness = TRUE
 )
 }
@@ -26,6 +26,9 @@ then this variable will be used to get the sampling frequency.}
 \item{x, y}{Columns containing the x and y coordinates of each point along
 the midline.}
 
+\item{cutoff}{(optional) If this parameter is included, smooth the swimming
+axis data with a low-pass filter with a cutoff at this frequency.}
+
 \item{.out}{Names of the output columns. Needs to have four elements specifying
 the names for the x and y coordinates of the swim axis and the parallel and
 perpendicular components of the excursion, in that order. Or it can be a named
@@ -35,9 +38,6 @@ defaults are 'swimaxis_x', 'swimaxis_y', 'exc_x', and 'exc_y')}
 
 \item{.frame, .point}{Columns identifying frames and points (defaults are \code{frame}
 and \code{point})}
-
-\item{cutoff}{(optional) If this parameter is included, smooth the swimming
-axis data with a low-pass filter with a cutoff at this frequency.}
 }
 \value{
 A data frame containing the original variables along with
