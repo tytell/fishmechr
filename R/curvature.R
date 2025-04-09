@@ -27,7 +27,7 @@ arclength <- function(x, y,
     ds <- sqrt(diff(x)^2 + diff(y)^2)
     s[2:length(s)] <- cumsum(ds)
   }
-  else if (any(!good) & !na.skip) {
+  else if ((any(!good) & !na.skip) | (sum(good) == 1)) {
     s <- rep(NA, length(x))
   }
   else {
