@@ -1,11 +1,11 @@
 pandoc: 3.1.11
-pkgdown: 2.1.1
+pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   fishmechr: fishmechr.html
   prickleback_swimming: prickleback_swimming.html
   process_sleap_data: process_sleap_data.html
-last_built: 2025-04-09T16:00Z
+last_built: 2025-07-31T13:18Z
 urls:
   reference: https://tytell.github.io/fishmechr/reference
   article: https://tytell.github.io/fishmechr/articles
