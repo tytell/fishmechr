@@ -1,9 +1,1 @@
-^fishmechr\.Rproj$
-^\.Rproj\.user$
-^LICENSE\.md$
-^_pkgdown\.yml$
-^docs$
-^pkgdown$
-^\.github$
-^doc$
-^Meta$
+^data-raw$
