@@ -55,7 +55,7 @@ sophisticated centering algorithms, see <code><a href="get_midline_center_df.htm
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_primary_swimming_axis</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, center <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_primary_swimming_axis</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, center <span class="op">=</span> <span class="cn">TRUE</span>, na.rm <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -68,6 +68,10 @@ sophisticated centering algorithms, see <code><a href="get_midline_center_df.htm
 
 <dt id="arg-center">center<a class="anchor" aria-label="anchor" href="#arg-center"></a></dt>
 <dd><p>(TRUE or FALSE) Subtract the mean from the x and y coordinates</p></dd>
+
+
+<dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
+<dd><p>(default FALSE) Remove NA points before computing the SVD</p></dd>
 
 </dl></div>
     <div class="section level2">

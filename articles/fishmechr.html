@@ -759,6 +759,7 @@ sinusoidal and centered around 0.</p>
 <p>This extracts the central swimming axis.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">&lt;-</span> <span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>mxmm_ctr <span class="op">=</span> <span class="va">mxmm_s</span> <span class="op">-</span> <span class="va">xcom</span>,</span>
 <span>         mymm_ctr <span class="op">=</span> <span class="va">mymm_s</span> <span class="op">-</span> <span class="va">ycom</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/get_primary_swimming_axis_df.html">get_primary_swimming_axis_df</a></span><span class="op">(</span><span class="va">t</span>, <span class="va">mxmm_ctr</span>, <span class="va">mymm_ctr</span>, .frame<span class="op">=</span><span class="va">frame</span><span class="op">)</span></span></code></pre></div>
