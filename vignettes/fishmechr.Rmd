@@ -329,6 +329,7 @@ lampreydata |>
 This extracts the central swimming axis.
 ```{r}
 lampreydata <- lampreydata |> 
+  ungroup() |> 
   mutate(mxmm_ctr = mxmm_s - xcom,
          mymm_ctr = mymm_s - ycom) |> 
   get_primary_swimming_axis_df(t, mxmm_ctr, mymm_ctr, .frame=frame)
