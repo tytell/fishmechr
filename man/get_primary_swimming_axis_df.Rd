@@ -6,7 +6,7 @@
 \usage{
 get_primary_swimming_axis_df(
   .data,
-  t,
+  tm,
   x,
   y,
   cutoff = NULL,
@@ -14,13 +14,14 @@ get_primary_swimming_axis_df(
   .out = NULL,
   .frame = frame,
   .point = point,
-  check_reasonableness = TRUE
+  check_reasonableness = TRUE,
+  na.rm = FALSE
 )
 }
 \arguments{
 \item{.data}{Data frame containing the midline data}
 
-\item{t}{Column containing the time data. If a cutoff frequency is passed in,
+\item{tm}{Column containing the time data. If a cutoff frequency is passed in,
 then this variable will be used to get the sampling frequency.}
 
 \item{x, y}{Columns containing the x and y coordinates of each point along
@@ -29,23 +30,30 @@ the midline.}
 \item{cutoff}{(optional) If this parameter is included, smooth the swimming
 axis data with a low-pass filter with a cutoff at this frequency.}
 
+\item{overwrite}{(default TRUE). Overwrite output columns if they exist}
+
 \item{.out}{Names of the output columns. Needs to have four elements specifying
 the names for the x and y coordinates of the swim axis and the parallel and
 perpendicular components of the excursion, in that order. Or it can be a named
 list containing at least some of the elements \code{swimaxis_x}, \code{swimaxis_y}, \code{exc_x},
 \code{exc}, in any order. If the return elements aren't in the named list, the
-defaults are 'swimaxis_x', 'swimaxis_y', 'exc_x', and 'exc_y')}
+defaults are 'swimaxis_x', 'swimaxis_y', 'exc_x', and 'exc')}
 
 \item{.frame, .point}{Columns identifying frames and points (defaults are \code{frame}
 and \code{point})}
+
+\item{check_reasonableness}{(default TRUE). Run some checks that the data are
+reasonable before processing.}
+
+\item{na.rm}{(default FALSE) Remove NA points before computing the SVD}
 }
 \value{
 A data frame containing the original variables along with
 \itemize{
 \item XX_ctr,YY_ctr: The center of each midline at each time, where XX and YY are
 the original names of the x and y coordinates.
-\item a,b: The new midlines centered and projected on to the swimming direction
-and the perpendicular axis. \code{b} is useful as the lateral excursion of the
+\item exc,exc_x: The new midlines centered and projected on to the swimming direction
+and the perpendicular axis. \code{exc} is useful as the lateral excursion of the
 swimming undulation.
 }
 }

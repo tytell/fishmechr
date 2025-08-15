@@ -4,12 +4,14 @@
 \alias{get_primary_swimming_axis}
 \title{Gets the main swimming axis from a midline}
 \usage{
-get_primary_swimming_axis(x, y, center = TRUE)
+get_primary_swimming_axis(x, y, center = TRUE, na.rm = FALSE)
 }
 \arguments{
 \item{x, y}{Coordinates of the midline}
 
 \item{center}{(TRUE or FALSE) Subtract the mean from the x and y coordinates}
+
+\item{na.rm}{(default FALSE) Remove NA points before computing the SVD}
 }
 \value{
 A data frame with the following columns:

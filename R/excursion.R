@@ -8,6 +8,7 @@
 #'
 #' @param x,y Coordinates of the midline
 #' @param center (TRUE or FALSE) Subtract the mean from the x and y coordinates
+#' @param na.rm (default FALSE) Remove NA points before computing the SVD
 #'
 #' @returns A data frame with the following columns:
 #'   * `swimaxis_x`, `swimaxis_y` x and y components of the swimming axis vector
@@ -80,10 +81,14 @@ get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
 #'   list containing at least some of the elements `swimaxis_x`, `swimaxis_y`, `exc_x`,
 #'   `exc`, in any order. If the return elements aren't in the named list, the
 #'   defaults are 'swimaxis_x', 'swimaxis_y', 'exc_x', and 'exc')
+#' @param overwrite (default TRUE). Overwrite output columns if they exist
 #' @param .frame,.point Columns identifying frames and points (defaults are `frame`
 #'   and `point`)
 #' @param cutoff (optional) If this parameter is included, smooth the swimming
 #'   axis data with a low-pass filter with a cutoff at this frequency.
+#' @param check_reasonableness (default TRUE). Run some checks that the data are
+#'   reasonable before processing.
+#' @param na.rm (default FALSE) Remove NA points before computing the SVD
 #'
 #' @returns A data frame containing the original variables along with
 #' * XX_ctr,YY_ctr: The center of each midline at each time, where XX and YY are
