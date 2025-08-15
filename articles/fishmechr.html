@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -347,7 +347,30 @@ or temporal derivative to estimate
 the body wavelength, or
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
 the undulation frequency.</p>
-<p>Below, we describe two methods for estimating phase.</p>
+<p>Below, we describe two methods for estimating phase. Before using
+either of these two methods, it may be helpful to add a second smoothing
+step, which may even oversmooth the data. Both of the methods require
+signals that oscillate around zero and clear peaks. If the oscillations
+are offset from zero, or there is noise in the data (particularly if
+there are noisy oscillations near the peaks that make it seem that there
+are multiple peaks), they will not give good results.</p>
+<div class="section level4">
+<h4 id="smoothing">Smoothing<a class="anchor" aria-label="anchor" href="#smoothing"></a>
+</h4>
+<p>Here, we suggest using a bandpass filter on the oscillation of any
+individual point. Choose a lower frequency that is less than half the
+lowest oscillation frequency and an upper frequency that is about 5-10
+times the highest oscillation frequency. The low frequency may be quite
+low. Be careful using standard filter design functions (such as the
+<code>butter</code> function in <code>pracma</code>) because these
+functions use autoregressive moving averages, which do not perform well
+for filtering at very low frequencies. We recommend using the “second
+order sections” method, which is more numerically stable. See further
+details below.</p>
+<p>Note that these (over) smoothed results are good to use for
+estimating phase, but not for later estimates of tailbeat amplitude or
+excursion.</p>
+</div>
 <div class="section level4">
 <h4 id="use-the-hilbert-transform">Use the Hilbert transform<a class="anchor" aria-label="anchor" href="#use-the-hilbert-transform"></a>
 </h4>
@@ -769,24 +792,69 @@ and centered around zero.</p>
 <div class="section level3">
 <h3 id="phase">Phase<a class="anchor" aria-label="anchor" href="#phase"></a>
 </h3>
+<div class="section level4">
+<h4 id="smooth-the-data-again">Smooth the data again<a class="anchor" aria-label="anchor" href="#smooth-the-data-again"></a>
+</h4>
+<p>To ensure that we have smooth enough data for the phase estimation,
+we smooth the oscillations here again.</p>
+<p>Get the sample frequency.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sampfreq</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">frame</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">frame</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>t <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">first</a></span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>sampfreq <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="va">t</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="va">t</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">sampfreq</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sampfreq</span></span>
+<span><span class="co">#&gt; [1] 50</span></span></code></pre></div>
+<p>Build the filter. <code>build_filter</code> here is just a small
+wrapper function for <code><a href="https://rdrr.io/pkg/gsignal/man/butter.html" class="external-link">gsignal::butter</a></code>, which builds a
+Butterwoth filter and returns it in SoS format.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">filt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/build_filter.html">build_filter</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">15</span>, sampfreq <span class="op">=</span> <span class="va">sampfreq</span><span class="op">)</span></span></code></pre></div>
+<p>Apply the filter for each point over time. Make sure that you are
+smoothing each point individually (i.e., use
+<code>group_by(point)</code>) and that the data are sorted in time.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">&lt;-</span></span>
+<span>  <span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">point</span>, <span class="va">t</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">point</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>exc_s <span class="op">=</span> <span class="fu"><a href="../reference/apply_filter.html">apply_filter</a></span><span class="op">(</span><span class="va">filt</span>, <span class="va">exc</span><span class="op">)</span>,</span>
+<span>         curve_ang_s <span class="op">=</span> <span class="fu"><a href="../reference/apply_filter.html">apply_filter</a></span><span class="op">(</span><span class="va">filt</span>, <span class="va">curve_ang</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">point</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">18</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>point <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">point</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">t</span>, color <span class="op">=</span> <span class="va">point</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">exc</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">exc_s</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="st">'dashed'</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_path()`).</span></span>
+<span><span class="co">#&gt; Removed 4 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
 <p>Now we compute the phase of each body point as it oscillates over
 time, looking at either the curvature <code>curve_ang</code> or the
 excursion <code>b</code>.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">frame</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">point</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">point</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>ph_c <span class="op">=</span> <span class="fu"><a href="../reference/hilbert_phase.html">hilbert_phase</a></span><span class="op">(</span><span class="va">curve_ang</span><span class="op">)</span>,</span>
-<span>         ph_e <span class="op">=</span> <span class="fu"><a href="../reference/hilbert_phase.html">hilbert_phase</a></span><span class="op">(</span><span class="va">exc</span><span class="op">)</span>,</span>
-<span>         ph_p <span class="op">=</span> <span class="fu"><a href="../reference/peak_phase.html">peak_phase</a></span><span class="op">(</span><span class="va">exc</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: There were 43 warnings in `mutate()`.</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>ph_c <span class="op">=</span> <span class="fu"><a href="../reference/hilbert_phase.html">hilbert_phase</a></span><span class="op">(</span><span class="va">curve_ang_s</span><span class="op">)</span>,</span>
+<span>         ph_e <span class="op">=</span> <span class="fu"><a href="../reference/hilbert_phase.html">hilbert_phase</a></span><span class="op">(</span><span class="va">exc_s</span><span class="op">)</span>,</span>
+<span>         ph_p <span class="op">=</span> <span class="fu"><a href="../reference/peak_phase.html">peak_phase</a></span><span class="op">(</span><span class="va">exc_s</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: There were 42 warnings in `mutate()`.</span></span>
 <span><span class="co">#&gt; The first warning was:</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In argument: `ph_c = hilbert_phase(curve_ang)`.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In argument: `ph_c = hilbert_phase(curve_ang_s)`.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In group 2: `point = 2`.</span></span>
 <span><span class="co">#&gt; Caused by warning in `hilbert_phase()`:</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Phase seems to go backwards a lot, which may indicate an overly noisy signal</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Run `dplyr::last_dplyr_warnings()` to see the 42 remaining warnings.</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> For a good phase estimate, the signal should oscillate around 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Run `dplyr::last_dplyr_warnings()` to see the 41 remaining warnings.</span></span></code></pre></div>
 <p><code>hilbert_phase</code> does a few checks on the results and gives
 warnings if it finds things that might cause problems. * It checks to
 make sure that most of the input data is not NA. It does not give a
@@ -802,7 +870,7 @@ but there could be an offset of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>π</mi></mrow><annotation encoding="application/x-tex">2\pi</annotation></semantics></math>
 in places. Here solid lines are phase based on curvature and dashed are
 phase based on excursion.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">point</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">8</span>, <span class="fl">15</span>, <span class="fl">18</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -813,13 +881,14 @@ phase based on excursion.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">point</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 93 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-20-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-24-1.png" width="700">
 Note that the curvature based phase (solid line) tends to fluctuate a
 lot for point 3, which is near the head where curvature is small.</p>
+</div>
 <div class="section level4">
 <h4 id="example-phase-figure">Example phase figure<a class="anchor" aria-label="anchor" href="#example-phase-figure"></a>
 </h4>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">examplet</span> <span class="op">&lt;-</span> <span class="fl">1.2</span></span>
 <span><span class="va">colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#1f78b4"</span>, <span class="st">"black"</span><span class="op">)</span></span>
 <span></span>
@@ -894,7 +963,7 @@ lot for point 3, which is near the head where curvature is small.</p>
 <span><span class="co">#&gt; (`geom_path()`).</span></span>
 <span><span class="co">#&gt; Removed 108 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
 </div>
 </div>
 <div class="section level3">
@@ -903,7 +972,7 @@ lot for point 3, which is near the head where curvature is small.</p>
 <p>As described above, the time derivative of the phase is the
 frequency. Here, we can compute a frequency at each point along the
 body, although they ought to be the same.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">point</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>freq_c <span class="op">=</span> <span class="fu"><a href="../reference/get_frequency.html">get_frequency</a></span><span class="op">(</span><span class="va">t</span>, <span class="va">ph_c</span>, method<span class="op">=</span><span class="st">'deriv'</span><span class="op">)</span>,</span>
@@ -925,12 +994,12 @@ body, although they ought to be the same.</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Run `dplyr::last_dplyr_warnings()` to see the 3 remaining warnings.</span></span>
 <span><span class="co">#&gt; Warning: Removed 79 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-22-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-26-1.png" width="700">
 # Body wavelength</p>
 <p>Body wavelength, as described above, is the derivative of the phase
 of each point along the body with respect to arc length. Phase typically
 decreases along the body, which indicates a backward traveling wave.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">frame</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">80</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">frame</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -939,7 +1008,7 @@ decreases along the body, which indicates a backward traveling wave.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">frame</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 20 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-23-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-27-1.png" width="700">
 The apparent discontinuity at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 = 50mm is not real. It just reflects the fact that phase goes from
@@ -952,14 +1021,14 @@ and then wraps around back to 0. We get rid of that by using the
 number).</p>
 <p>This is the phase across the body with the discontinuities
 removed.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">frame</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">frame</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>phbody <span class="op">=</span> <span class="fu">gsignal</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gsignal/man/unwrap.html" class="external-link">unwrap</a></span><span class="op">(</span><span class="va">ph_e</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">arclen</span>, y <span class="op">=</span> <span class="va">phbody</span>, color <span class="op">=</span> <span class="va">frame</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">frame</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="methods-of-estimating-wavelength">Methods of estimating wavelength<a class="anchor" aria-label="anchor" href="#methods-of-estimating-wavelength"></a>
@@ -990,7 +1059,7 @@ anterior. <code>get_wavelength</code> allows you to specify a formula to
 ignore certain locations for the estimate.</p>
 <p>Here is an example for a single frame. We’re ignoring points that are
 less than 30mm from the head.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">w</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">frame</span>, <span class="va">arclen</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -1013,12 +1082,12 @@ less than 30mm from the head.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 41 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-25-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-29-1.png" width="700">
 Here, you can see that all of the methods give similar results, but
 there are different numbers of values and different resolution along the
 body. We suggest the “halfcycle” option as a good, relatively robust
 compromise.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">frame</span>, <span class="va">arclen</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">frame</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -1032,13 +1101,20 @@ compromise.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">t</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">wavelen</span>, color <span class="op">=</span> <span class="va">arclen</span>, shape<span class="op">=</span><span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_shape_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Removed 2870 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; Warning: There were 6 warnings in `mutate()`.</span></span>
+<span><span class="co">#&gt; The first warning was:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In argument: `wavelen_exc = get_wavelength(...)`.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In group 3: `frame = 3`.</span></span>
+<span><span class="co">#&gt; Caused by warning in `get_wavelength()`:</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Phase does not seem to be decreasing along the body. Wavelength may be strange</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Run `dplyr::last_dplyr_warnings()` to see the 5 remaining warnings.</span></span>
+<span><span class="co">#&gt; Warning: Removed 2838 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-26-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-30-1.png" width="700">
 Here we see that wavelength estimated based on curvature is slightly
 noisier than curvature based on excursion, and that both fluctuate over
 time.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">frame</span>, <span class="va">arclen</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">frame</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -1053,9 +1129,16 @@ time.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">wavelen</span>, color <span class="op">=</span> <span class="va">arclen</span>, shape<span class="op">=</span><span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_shape_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">method</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Removed 2870 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; Warning: There were 6 warnings in `mutate()`.</span></span>
+<span><span class="co">#&gt; The first warning was:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In argument: `wavelen_exc = get_wavelength(...)`.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In group 3: `frame = 3`.</span></span>
+<span><span class="co">#&gt; Caused by warning in `get_wavelength()`:</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Phase does not seem to be decreasing along the body. Wavelength may be strange</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Run `dplyr::last_dplyr_warnings()` to see the 5 remaining warnings.</span></span>
+<span><span class="co">#&gt; Warning: Removed 2838 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-27-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-31-1.png" width="700">
 This plot shows wavelength as a function of body position and estimation
 method. The curvature-based wavelengths seem to increase along the body
 (aside from some erroneous very low values very close to the tail),
@@ -1070,14 +1153,14 @@ tail.</p>
 for the whole body. We define this based on the excursion of the tail
 point. <code>get_body_cycle_numbers</code> also excludes partial
 cycles.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/get_body_cycle_numbers_df.html">get_body_cycle_numbers_df</a></span><span class="op">(</span><span class="va">ph_p</span>, <span class="fl">20</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">t</span>, <span class="va">point</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">lampreydata</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1,600 × 24</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1,600 × 26</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   point [20]</span></span></span>
 <span><span class="co">#&gt;        t frame point  mxmm  mymm arclen0 arclen mxmm_s mymm_s width  xcom  ycom</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -1092,15 +1175,16 @@ cycles.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  0.02     1     9    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  65.1      <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>  2.70    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  0.02     1    10    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  73.2      <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>  2.61    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1,590 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 12 more variables: curve_ang &lt;dbl&gt;, curve_xy &lt;dbl&gt;, mxmm_ctr &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 14 more variables: curve_ang &lt;dbl&gt;, curve_xy &lt;dbl&gt;, mxmm_ctr &lt;dbl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   mymm_ctr &lt;dbl&gt;, swimaxis_x &lt;dbl&gt;, swimaxis_y &lt;dbl&gt;, exc_x &lt;dbl&gt;, exc &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   ph_c &lt;dbl&gt;, ph_e &lt;dbl&gt;, ph_p &lt;dbl&gt;, cycle &lt;dbl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;">#   exc_s &lt;dbl&gt;, curve_ang_s &lt;dbl&gt;, ph_c &lt;dbl&gt;, ph_e &lt;dbl&gt;, ph_p &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   cycle &lt;dbl&gt;</span></span></span></code></pre></div>
 <p>Now, we can use <code>group_by</code> on cycles to find
 cycle-by-cycle values. Here, we look for the range of the excursion
 variable <code>b</code>. Half of that range is the amplitude, which we
 can define at each point on the body, and over the four cycles that are
 present in this trial.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">point</span>, <span class="va">cycle</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>amp <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">exc</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">exc</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fl">2</span>,</span>
@@ -1111,7 +1195,7 @@ present in this trial.</p>
 <span><span class="co">#&gt; `.groups` argument.</span></span>
 <span><span class="co">#&gt; Warning: Removed 20 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
