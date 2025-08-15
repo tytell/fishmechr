@@ -116,7 +116,13 @@ where $A(s)$ is the wave amplitude, $k$ is the wave length, $f$ is the oscillati
 
 If we can estimate the phase accurately, then we can use a spatial (i.e., with respect to $s$) or temporal derivative to estimate $\lambda$, the body wavelength, or $f$ the undulation frequency.
 
-Below, we describe two methods for estimating phase.
+Below, we describe two methods for estimating phase. Before using either of these two methods, it may be helpful to add a second smoothing step, which may even oversmooth the data. Both of the methods require signals that oscillate around zero and clear peaks. If the oscillations are offset from zero, or there is noise in the data (particularly if there are noisy oscillations near the peaks that make it seem that there are multiple peaks), they will not give good results.
+
+### Smoothing
+
+Here, we suggest using a bandpass filter on the oscillation of any individual point. Choose a lower frequency that is less than half the lowest oscillation frequency and an upper frequency that is about 5-10 times the highest oscillation frequency. The low frequency may be quite low. Be careful using standard filter design functions (such as the `butter` function in `pracma`) because these functions use autoregressive moving averages, which do not perform well for filtering at very low frequencies. We recommend using the "second order sections" method, which is more numerically stable. See further details below.
+
+Note that these (over) smoothed results are good to use for estimating phase, but not for later estimates of tailbeat amplitude or excursion.
 
 ### Use the Hilbert transform
 
@@ -354,15 +360,58 @@ lampreydata |>
 
 ## Phase
 
+### Smooth the data again
+
+To ensure that we have smooth enough data for the phase estimation, we smooth the oscillations here again.
+
+Get the sample frequency.
+```{r}
+sampfreq <-
+  lampreydata |> 
+  filter(frame %in% c(1, 2)) |> 
+  group_by(frame) |> 
+  summarize(t = first(t)) |> 
+  ungroup() |> 
+  summarize(sampfreq = 1 / (t[2] - t[1])) |> 
+  pull(sampfreq)
+
+sampfreq
+```
+
+Build the filter. `build_filter` here is just a small wrapper function for
+`gsignal::butter`, which builds a Butterwoth filter and returns it in SoS format.
+```{r}
+filt <- build_filter(0.5, 15, sampfreq = sampfreq)
+```
+
+Apply the filter for each point over time. Make sure that you are smoothing each point individually (i.e., use `group_by(point)`) and that the data are sorted in time.
+```{r}
+lampreydata <-
+  lampreydata |> 
+  arrange(point, t) |> 
+  group_by(point) |> 
+  mutate(exc_s = apply_filter(filt, exc),
+         curve_ang_s = apply_filter(filt, curve_ang))
+```
+
+```{r}
+lampreydata |> 
+  filter(point %in% c(10, 18)) |>
+  mutate(point = factor(point)) |> 
+  ggplot(aes(x = t, color = point)) +
+  geom_path(aes(y = exc)) +
+  geom_path(aes(y = exc_s), linetype = 'dashed')
+```
+
 Now we compute the phase of each body point as it oscillates over time, looking at either the curvature `curve_ang` or the excursion `b`.
 ```{r}
 lampreydata <-
   lampreydata |> 
   arrange(frame, desc(point)) |> 
   group_by(point) |> 
-  mutate(ph_c = hilbert_phase(curve_ang),
-         ph_e = hilbert_phase(exc),
-         ph_p = peak_phase(exc))
+  mutate(ph_c = hilbert_phase(curve_ang_s),
+         ph_e = hilbert_phase(exc_s),
+         ph_p = peak_phase(exc_s))
 ```
 `hilbert_phase` does a few checks on the results and gives warnings if it finds things that might cause problems.
 * It checks to make sure that most of the input data is not NA. It does not give a warning if all of the input data is NA, only if at least some of the data is not NA.
