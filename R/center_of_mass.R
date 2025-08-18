@@ -27,6 +27,9 @@
 #'   'ycom')
 #' @param .frame,.point Columns identifying frames and points (defaults are `frame`
 #'   and `point`)
+#' @param excludepoints Exclude these points when estimating center. Some points
+#'   (like the tip of the tail) have relatively little mass and are hard to track,
+#'   so can introduce errors.
 #' @param cutoff (optional) If this parameter is included, smooth the swimming
 #'   axis data with a low-pass filter with a cutoff at this frequency.
 #' @param method 'mutate' or 'summarize'. If summarize, returns one center position
@@ -46,80 +49,131 @@
 #'   mutate(arclen = arclength(mxmm, mymm),
 #'          width = interpolate_width(fishwidth$s, fishwidth$ammowidth, arclen)) |>
 #'   get_midline_center_df(arclen, mxmm,mymm, width=width)
-get_midline_center_df <- function(.data, arclen, x, y, mass,width,height,
-                          .out = NULL,
-                          .frame = frame, .point = point,
-                          method = "mutate",
-                          overwrite = TRUE)
-{
+get_midline_center_df <- function(
+  .data,
+  arclen,
+  x,
+  y,
+  mass,
+  width,
+  height,
+  .out = NULL,
+  .frame = frame,
+  .point = point,
+  excludepoints = c(),
+  method = "mutate",
+  overwrite = TRUE
+) {
   assertthat::assert_that(method %in% c("mutate", "summarize", "summarise"))
 
-  .out <- check.out(.data, .out, .out_default = c(xctr = 'xcom', yctr = 'ycom'),
-                    overwrite = overwrite)
+  assertthat::assert_that(
+    !is_grouped_df(.data),
+    msg = "`get_midline_center_df` does not work on grouped data frames. Consider wrapping it in a call to `group_modify` to operate on groups separately"
+  )
+
+  .out <- check.out(
+    .data,
+    .out,
+    .out_default = c(xctr = 'xcom', yctr = 'ycom'),
+    overwrite = overwrite
+  )
 
   .frame <- rlang::enquo(.frame)
   if (missing(.frame)) {
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
-                            msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
+    assertthat::assert_that(
+      assertthat::has_name(.data, rlang::as_name(.frame)),
+      msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column"
+    )
   }
   .point <- rlang::enquo(.point)
   if (missing(.point)) {
     .point <- rlang::enquo(.point)
   }
 
-  if (method == "mutate")
+  if (any(!(excludepoints %in% rlang::eval_tidy(.point, .data)))) {
+    cli::cli_alert_warning(
+      'Some excluded points are not present in the data set'
+    )
+  }
+
+  if (method == "mutate") {
     fcn <- dplyr::mutate
-  else if (method %in% c("summarize", "summarise"))
+  } else if (method %in% c("summarize", "summarise")) {
     fcn <- dplyr::summarise
+  }
 
   if (!missing(mass)) {
-    message("Estimating true center of mass based on mass distribution")
+    cli::cli_alert_info(
+      "Estimating true center of mass based on mass distribution"
+    )
     mass <- rlang::enquo(mass)
 
-    .data <- .data |>
+    com <- .data |>
       dplyr::group_by(!!.frame, .add = TRUE) |>
-      fcn(M = sum(!!mass, na.rm = TRUE),
-          data.table::`:=`("{.out[1]}" , sum(!!mass * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*M)),
-          data.table::`:=`("{.out[2]}",  sum(!!mass * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*M))) |>
+      filter(!(!!.point %in% excludepoints)) |>
+      summarize(
+        M = sum(!!mass, na.rm = TRUE),
+        data.table::`:=`(
+          "{.out[1]}",
+          sum(!!mass * ({{ x }} + dplyr::lead({{ x }})), na.rm = TRUE) / (2 * M)
+        ),
+        data.table::`:=`(
+          "{.out[2]}",
+          sum(!!mass * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) / (2 * M)
+        )
+      ) |>
       select(-c(M))
-  }
-  else if (!missing(height) & !missing(width)) {
-    message("Estimating center of mass based on width and height")
+  } else if (!missing(height) & !missing(width)) {
+    cli::cli_alert_info("Estimating center of mass based on width and height")
     width <- rlang::enquo(width)
     height <- rlang::enquo(height)
 
-    .data <- .data |>
+    com <- .data |>
       group_by(!!.frame, .add = TRUE) |>
-      fcn(V = get_volume({{arclen}}, !!width, !!height),
-          sumV = sum(V, na.rm = TRUE),
+      filter(!(!!.point %in% excludepoints)) |>
+      summarize(
+        V = get_volume({{ arclen }}, !!width, !!height),
+        sumV = sum(V, na.rm = TRUE),
 
-          "{.out[1]}" := sum(V * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV),
-          "{.out[2]}" := sum(V * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV)) |>
-          # data.table::`:=`("{.out[1]}", sum(V * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV)),
-          # data.table::`:=`("{.out[2]}", sum(V * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV))) |>
-      select(-c(V,sumV))
-  }
-  else if (!missing(width) & missing(height)) {
-    message("Estimating center of mass based on width")
+        "{.out[1]}" := sum(V * ({{ x }} + dplyr::lead({{ x }})), na.rm = TRUE) /
+          (2 * sumV),
+        "{.out[2]}" := sum(V * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) /
+          (2 * sumV)
+      ) |>
+      # data.table::`:=`("{.out[1]}", sum(V * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV)),
+      # data.table::`:=`("{.out[2]}", sum(V * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV))) |>
+      select(-c(V, sumV))
+  } else if (!missing(width) & missing(height)) {
+    cli::cli_alert_info("Estimating center of mass based on width")
     width <- rlang::enquo(width)
 
-    .data <- .data |>
+    com <- .data |>
       group_by(!!.frame, .add = TRUE) |>
-      fcn(sumw = sum(!!width, na.rm=TRUE),
-          "{.out[1]}" := sum({{x}} * !!width) / sumw,
-          "{.out[2]}" := sum({{y}} * !!width) / sumw) |>
+      filter(!(!!.point %in% excludepoints)) |>
+      summarize(
+        sumw = sum(!!width, na.rm = TRUE),
+        "{.out[1]}" := sum({{ x }} * !!width) / sumw,
+        "{.out[2]}" := sum({{ y }} * !!width) / sumw
+      ) |>
       select(-sumw)
   } else {
-    message("Estimating center of mass as the centroid of x and y")
-    .data <- .data |>
+    cli::cli_alert_info("Estimating center of mass as the centroid of x and y")
+    com <- .data |>
       group_by(!!.frame) |>
-      fcn("{.out[1]}" := mean({{x}}, na.rm = TRUE),
-          "{.out[2]}" := mean({{y}}, na.rm = TRUE))
+      filter(!(!!.point %in% excludepoints)) |>
+      summarize(
+        "{.out[1]}" := mean({{ x }}, na.rm = TRUE),
+        "{.out[2]}" := mean({{ y }}, na.rm = TRUE)
+      )
   }
 
   if (method == "mutate") {
     .data <- .data |>
-      ungroup(!!.frame)
+      ungroup() |>
+      select(-any_of(.out)) |>
+      left_join(com, by = c(rlang::quo_name(.frame)))
+  } else {
+    .data <- com
   }
 
   .data
@@ -146,15 +200,15 @@ get_midline_center_df <- function(.data, arclen, x, y, mass,width,height,
 #' @export
 #'
 #' @examples
-get_volume <- function(arclen, width, height)
-{
+get_volume <- function(arclen, width, height) {
   ds <- dplyr::lead(arclen) - arclen
 
   dw <- dplyr::lead(width) - width
   dh <- dplyr::lead(height) - height
 
-  pi * ds * (width * height + 0.5*dw*height +
-               0.5*dh*width + 1/3*dw*dh)
+  pi *
+    ds *
+    (width * height + 0.5 * dw * height + 0.5 * dh * width + 1 / 3 * dw * dh)
 }
 
 #' Interpolates and scales fish body width
@@ -180,14 +234,17 @@ get_volume <- function(arclen, width, height)
 #' @concept pipeline
 #' @returns Width at the new values of arc length, scaled for the new length
 #' @export
-interpolate_width <- function(arclen0, width0, arclen, scale_to_body_length=TRUE)
-{
-
+interpolate_width <- function(
+  arclen0,
+  width0,
+  arclen,
+  scale_to_body_length = TRUE
+) {
   if (sum(!is.na(arclen)) > 2) {
     len0 <- max(arclen0, na.rm = TRUE)
     len1 <- max(arclen, na.rm = TRUE)
 
-    xy <- approx(arclen0/len0*len1, width0, xout=arclen)
+    xy <- approx(arclen0 / len0 * len1, width0, xout = arclen)
     if (scale_to_body_length) {
       xy$y = xy$y / len0 * len1
     }
