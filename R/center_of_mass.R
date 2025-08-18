@@ -78,16 +78,23 @@ get_midline_center_df <- function(
     overwrite = overwrite
   )
 
-  .frame <- rlang::enquo(.frame)
   if (missing(.frame)) {
+    .frame <- enquo(.frame)
     assertthat::assert_that(
       assertthat::has_name(.data, rlang::as_name(.frame)),
       msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column"
     )
+  } else {
+    .frame <- enquo(.frame)
   }
-  .point <- rlang::enquo(.point)
   if (missing(.point)) {
-    .point <- rlang::enquo(.point)
+    .point <- enquo(.point)
+    assertthat::assert_that(
+      assertthat::has_name(.data, rlang::as_name(.point)),
+      msg = "Default column 'point' not present. Use .point to specify the name of the point column"
+    )
+  } else {
+    .point <- enquo(.point)
   }
 
   if (any(!(excludepoints %in% rlang::eval_tidy(.point, .data)))) {
@@ -109,7 +116,7 @@ get_midline_center_df <- function(
     mass <- rlang::enquo(mass)
 
     com <- .data |>
-      dplyr::group_by(!!.frame, .add = TRUE) |>
+      dplyr::group_by(!!.frame) |>
       filter(!(!!.point %in% excludepoints)) |>
       summarize(
         M = sum(!!mass, na.rm = TRUE),
@@ -120,7 +127,8 @@ get_midline_center_df <- function(
         data.table::`:=`(
           "{.out[2]}",
           sum(!!mass * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) / (2 * M)
-        )
+        ),
+        .groups = 'drop'
       ) |>
       select(-c(M))
   } else if (!missing(height) & !missing(width)) {
@@ -129,31 +137,30 @@ get_midline_center_df <- function(
     height <- rlang::enquo(height)
 
     com <- .data |>
-      group_by(!!.frame, .add = TRUE) |>
       filter(!(!!.point %in% excludepoints)) |>
+      group_by(!!.frame) |>
+      mutate(V = get_volume({{ arclen }}, !!width, !!height)) |>
       summarize(
-        V = get_volume({{ arclen }}, !!width, !!height),
         sumV = sum(V, na.rm = TRUE),
-
         "{.out[1]}" := sum(V * ({{ x }} + dplyr::lead({{ x }})), na.rm = TRUE) /
           (2 * sumV),
         "{.out[2]}" := sum(V * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) /
-          (2 * sumV)
+          (2 * sumV),
+        .groups = 'drop'
       ) |>
-      # data.table::`:=`("{.out[1]}", sum(V * ({{x}} + dplyr::lead({{x}})), na.rm=TRUE) / (2*sumV)),
-      # data.table::`:=`("{.out[2]}", sum(V * ({{y}} + dplyr::lead({{y}})), na.rm=TRUE) / (2*sumV))) |>
-      select(-c(V, sumV))
+      select(-c(sumV))
   } else if (!missing(width) & missing(height)) {
     cli::cli_alert_info("Estimating center of mass based on width")
     width <- rlang::enquo(width)
 
     com <- .data |>
-      group_by(!!.frame, .add = TRUE) |>
+      group_by(!!.frame) |>
       filter(!(!!.point %in% excludepoints)) |>
       summarize(
         sumw = sum(!!width, na.rm = TRUE),
         "{.out[1]}" := sum({{ x }} * !!width) / sumw,
-        "{.out[2]}" := sum({{ y }} * !!width) / sumw
+        "{.out[2]}" := sum({{ y }} * !!width) / sumw,
+        .groups = 'drop'
       ) |>
       select(-sumw)
   } else {
@@ -163,7 +170,8 @@ get_midline_center_df <- function(
       filter(!(!!.point %in% excludepoints)) |>
       summarize(
         "{.out[1]}" := mean({{ x }}, na.rm = TRUE),
-        "{.out[2]}" := mean({{ y }}, na.rm = TRUE)
+        "{.out[2]}" := mean({{ y }}, na.rm = TRUE),
+        .groups = 'drop'
       )
   }
 
