@@ -87,20 +87,27 @@ get_midline_center_df <- function(
   } else {
     .frame <- enquo(.frame)
   }
-  if (missing(.point)) {
-    .point <- enquo(.point)
-    assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.point)),
-      msg = "Default column 'point' not present. Use .point to specify the name of the point column"
-    )
-  } else {
-    .point <- enquo(.point)
-  }
 
-  if (any(!(excludepoints %in% rlang::eval_tidy(.point, .data)))) {
-    cli::cli_alert_warning(
-      'Some excluded points are not present in the data set'
-    )
+  if (length(excludepoints) > 0) {
+    if (missing(.point)) {
+      .point <- enquo(.point)
+      assertthat::assert_that(
+        assertthat::has_name(.data, rlang::as_name(.point)),
+        msg = "Default column 'point' not present. Use .point to specify the name of the point column"
+      )
+    } else {
+      .point <- enquo(.point)
+    }
+
+    if (any(!(excludepoints %in% rlang::eval_tidy(.point, .data)))) {
+      cli::cli_alert_warning(
+        'Some excluded points are not present in the data set'
+      )
+    }
+
+    excludefcn <- function(df) filter(df, !(!!.point %in% excludepoints))
+  } else {
+    excludefcn <- function(df) df
   }
 
   if (method == "mutate") {
@@ -117,7 +124,7 @@ get_midline_center_df <- function(
 
     com <- .data |>
       dplyr::group_by(!!.frame) |>
-      filter(!(!!.point %in% excludepoints)) |>
+      excludefcn() |>
       summarize(
         M = sum(!!mass, na.rm = TRUE),
         data.table::`:=`(
@@ -138,7 +145,7 @@ get_midline_center_df <- function(
     height <- rlang::enquo(height)
 
     com <- .data |>
-      filter(!(!!.point %in% excludepoints)) |>
+      excludefcn() |>
       group_by(!!.frame) |>
       mutate(V = get_volume({{ arclen }}, !!width, !!height)) |>
       summarize(
@@ -157,7 +164,7 @@ get_midline_center_df <- function(
 
     com <- .data |>
       group_by(!!.frame) |>
-      filter(!(!!.point %in% excludepoints)) |>
+      excludefcn() |>
       summarize(
         sumw = sum(!!width, na.rm = TRUE),
         "{.out[1]}" := sum({{ x }} * !!width) / sumw,
@@ -170,7 +177,7 @@ get_midline_center_df <- function(
     cli::cli_alert_info("Estimating center of mass as the centroid of x and y")
     com <- .data |>
       group_by(!!.frame) |>
-      filter(!(!!.point %in% excludepoints)) |>
+      excludefcn() |>
       summarize(
         "{.out[1]}" := mean({{ x }}, na.rm = TRUE),
         "{.out[2]}" := mean({{ y }}, na.rm = TRUE),
