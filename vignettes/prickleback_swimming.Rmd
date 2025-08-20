@@ -113,6 +113,7 @@ xmucosusdata <-
 ```{r}
 xmucosusdata <-
   xmucosusdata |> 
+  ungroup() |> 
   get_midline_center_df(arclen, x_s,y_s, width=width,
                         .frame = frame_idx)
 ```

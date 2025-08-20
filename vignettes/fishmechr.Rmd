@@ -283,6 +283,7 @@ lampreydata |>
 ```{r}
 lampreydata <-
   lampreydata |> 
+  ungroup() |> 
   get_midline_center_df(arclen, mxmm_s,mymm_s, width=width)
 
 lampreydata |> 
