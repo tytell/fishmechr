@@ -15,6 +15,7 @@ get_midline_center_df(
   .out = NULL,
   .frame = frame,
   .point = point,
+  excludepoints = c(),
   method = "mutate",
   overwrite = TRUE
 )
@@ -44,6 +45,10 @@ return elements aren't in the named list, the defaults are 'xcom' and
 
 \item{.frame, .point}{Columns identifying frames and points (defaults are \code{frame}
 and \code{point})}
+
+\item{excludepoints}{Exclude these points when estimating center. Some points
+(like the tip of the tail) have relatively little mass and are hard to track,
+so can introduce errors.}
 
 \item{method}{'mutate' or 'summarize'. If summarize, returns one center position
 for each frame. If mutate, returns a same center position repeated for
