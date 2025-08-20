@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -705,8 +705,9 @@ arc length is in mm.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/get_midline_center_df.html">get_midline_center_df</a></span><span class="op">(</span><span class="va">arclen</span>, <span class="va">mxmm_s</span>,<span class="va">mymm_s</span>, width<span class="op">=</span><span class="va">width</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width</span></span>
 <span></span>
 <span><span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">frame</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -1161,7 +1162,7 @@ cycles.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">t</span>, <span class="va">point</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">lampreydata</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1,600 × 26</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1,600 × 27</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   point [20]</span></span></span>
 <span><span class="co">#&gt;        t frame point  mxmm  mymm arclen0 arclen mxmm_s mymm_s width  xcom  ycom</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -1176,10 +1177,10 @@ cycles.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  0.02     1     9    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  65.1      <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>  2.70    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  0.02     1    10    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  73.2      <span style="color: #BB0000;">NA</span>     <span style="color: #BB0000;">NA</span>  2.61    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1,590 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 14 more variables: curve_ang &lt;dbl&gt;, curve_xy &lt;dbl&gt;, mxmm_ctr &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   mymm_ctr &lt;dbl&gt;, swimaxis_x &lt;dbl&gt;, swimaxis_y &lt;dbl&gt;, exc_x &lt;dbl&gt;, exc &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   exc_s &lt;dbl&gt;, curve_ang_s &lt;dbl&gt;, ph_c &lt;dbl&gt;, ph_e &lt;dbl&gt;, ph_p &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   cycle &lt;dbl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 15 more variables: nsum &lt;int&gt;, curve_ang &lt;dbl&gt;, curve_xy &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   mxmm_ctr &lt;dbl&gt;, mymm_ctr &lt;dbl&gt;, swimaxis_x &lt;dbl&gt;, swimaxis_y &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   exc_x &lt;dbl&gt;, exc &lt;dbl&gt;, exc_s &lt;dbl&gt;, curve_ang_s &lt;dbl&gt;, ph_c &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   ph_e &lt;dbl&gt;, ph_p &lt;dbl&gt;, cycle &lt;dbl&gt;</span></span></span></code></pre></div>
 <p>Now, we can use <code>group_by</code> on cycles to find
 cycle-by-cycle values. Here, we look for the range of the excursion
 variable <code>b</code>. Half of that range is the amplitude, which we

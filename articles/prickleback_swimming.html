@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -214,9 +214,10 @@ what is shown in the main vignette.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xmucosusdata</span> <span class="op">&lt;-</span></span>
 <span>  <span class="va">xmucosusdata</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/get_midline_center_df.html">get_midline_center_df</a></span><span class="op">(</span><span class="va">arclen</span>, <span class="va">x_s</span>,<span class="va">y_s</span>, width<span class="op">=</span><span class="va">width</span>,</span>
 <span>                        .frame <span class="op">=</span> <span class="va">frame_idx</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="get-the-swimming-axis">Get the swimming axis<a class="anchor" aria-label="anchor" href="#get-the-swimming-axis"></a>

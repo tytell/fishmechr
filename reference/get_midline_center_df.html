@@ -9,7 +9,7 @@ or body width."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,6 +57,7 @@ or body width.</p>
 <span>  .out <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  .frame <span class="op">=</span> <span class="va">frame</span>,</span>
 <span>  .point <span class="op">=</span> <span class="va">point</span>,</span>
+<span>  excludepoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"mutate"</span>,</span>
 <span>  overwrite <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -105,6 +106,12 @@ return elements aren't in the named list, the defaults are 'xcom' and
 <dt id="arg--frame-point">.frame, .point<a class="anchor" aria-label="anchor" href="#arg--frame-point"></a></dt>
 <dd><p>Columns identifying frames and points (defaults are <code>frame</code>
 and <code>point</code>)</p></dd>
+
+
+<dt id="arg-excludepoints">excludepoints<a class="anchor" aria-label="anchor" href="#arg-excludepoints"></a></dt>
+<dd><p>Exclude these points when estimating center. Some points
+(like the tip of the tail) have relatively little mass and are hard to track,
+so can introduce errors.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>

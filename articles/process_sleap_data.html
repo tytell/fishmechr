@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,11 +108,11 @@ package.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://here.r-lib.org/" class="external-link">here</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sleapfiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data"</span>,<span class="st">"2024-11-14_labels2.000_fish_01-030RPM-ortho-2024-11-14T044441.analysis.csv"</span><span class="op">)</span>,</span>
-<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data"</span>,<span class="st">"2024-11-14_labels2.001_fish_01-040RPM-ortho-2024-11-14T044525.analysis.csv"</span><span class="op">)</span>,</span>
-<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data"</span>, <span class="st">"2024-11-14_labels2.002_fish_01-050RPM-ortho-2024-11-14T045204.analysis.csv"</span><span class="op">)</span>,</span>
-<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data"</span>,<span class="st">"2024-11-14_labels2.003_fish_01-060RPM-ortho-2024-11-14T044754.analysis.csv"</span><span class="op">)</span>,</span>
-<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data"</span>,<span class="st">"2024-11-14_labels2.004_fish_01-070RPM-ortho-2024-11-14T044858.analysis.csv"</span><span class="op">)</span></span>
+<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data-raw"</span>,<span class="st">"2024-11-14_labels2.000_fish_01-030RPM-ortho-2024-11-14T044441.analysis.csv"</span><span class="op">)</span>,</span>
+<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data-raw"</span>,<span class="st">"2024-11-14_labels2.001_fish_01-040RPM-ortho-2024-11-14T044525.analysis.csv"</span><span class="op">)</span>,</span>
+<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data-raw"</span>, <span class="st">"2024-11-14_labels2.002_fish_01-050RPM-ortho-2024-11-14T045204.analysis.csv"</span><span class="op">)</span>,</span>
+<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data-raw"</span>,<span class="st">"2024-11-14_labels2.003_fish_01-060RPM-ortho-2024-11-14T044754.analysis.csv"</span><span class="op">)</span>,</span>
+<span>  <span class="fu">here</span><span class="op">(</span><span class="st">"data-raw"</span>,<span class="st">"2024-11-14_labels2.004_fish_01-070RPM-ortho-2024-11-14T044858.analysis.csv"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">parse_file_name</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fn</span><span class="op">)</span></span>
@@ -126,12 +126,12 @@ package.</p>
 <span><span class="va">zfishdata</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">sleapfiles</span>, \<span class="op">(</span><span class="va">fn</span><span class="op">)</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu">read_csv</span><span class="op">(</span><span class="va">fn</span>, id <span class="op">=</span> <span class="st">"fn"</span>, </span>
 <span>                                         show_col_types <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>dd <span class="op">=</span> <span class="fu">map</span><span class="op">(</span><span class="va">fn</span>, <span class="va">parse_file_name</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>dd <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">fn</span>, <span class="va">parse_file_name</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">dd</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>fn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">basename</a></span><span class="op">(</span><span class="va">fn</span><span class="op">)</span>,</span>
 <span>         speed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">speed</span><span class="op">)</span><span class="op">)</span> </span>
 <span></span>
-<span><span class="va">zfish_goodframes</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu">read_csv</span><span class="op">(</span><span class="fu">here</span><span class="op">(</span><span class="st">"data"</span>, <span class="st">"zfish_goodframes.csv"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">zfish_goodframes</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu">read_csv</span><span class="op">(</span><span class="fu">here</span><span class="op">(</span><span class="st">"data-raw"</span>, <span class="st">"zfish_goodframes.csv"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">zfishdata</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 46</span></span></span>
@@ -327,14 +327,16 @@ actual length of our fish.</p>
 <span>    <span class="fu"><a href="../reference/get_primary_swimming_axis_df.html">get_primary_swimming_axis_df</a></span><span class="op">(</span><span class="va">t</span>, <span class="va">xctr</span>, <span class="va">yctr</span>, </span>
 <span>                                 .frame <span class="op">=</span> <span class="va">frame_idx</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width and height</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width and height</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width and height</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width and height</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width and height</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width and height</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width and height</span></span>
-<span><span class="co">#&gt; Estimating center of mass based on width and height</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width and height</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width and height</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width and height</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width and height</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width and height</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width and height</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width and height</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Some frames have missing points. Dropping COM estimates for those frames</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimating center of mass based on width and height</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Some frames have missing points. Dropping COM estimates for those frames</span></span></code></pre></div>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zfdata_ctr</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">exc_x</span>, y <span class="op">=</span> <span class="va">exc</span>, color <span class="op">=</span> <span class="va">point</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>

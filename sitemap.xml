@@ -14,6 +14,7 @@
 <url><loc>https://tytell.github.io/fishmechr/reference/check_if_overwrite_columns.html</loc></url>
 <url><loc>https://tytell.github.io/fishmechr/reference/curvature.html</loc></url>
 <url><loc>https://tytell.github.io/fishmechr/reference/deriv.html</loc></url>
+<url><loc>https://tytell.github.io/fishmechr/reference/find_gaps_df.html</loc></url>
 <url><loc>https://tytell.github.io/fishmechr/reference/fishmechr-package.html</loc></url>
 <url><loc>https://tytell.github.io/fishmechr/reference/get_body_cycle_numbers_df.html</loc></url>
 <url><loc>https://tytell.github.io/fishmechr/reference/get_cycle_numbers.html</loc></url>
@@ -32,5 +33,7 @@
 <url><loc>https://tytell.github.io/fishmechr/reference/peak_phase.html</loc></url>
 <url><loc>https://tytell.github.io/fishmechr/reference/pivot_kinematics_longer.html</loc></url>
 <url><loc>https://tytell.github.io/fishmechr/reference/skip_na.html</loc></url>
+<url><loc>https://tytell.github.io/fishmechr/reference/smooth_point.html</loc></url>
+<url><loc>https://tytell.github.io/fishmechr/reference/smooth_points_df.html</loc></url>
 </urlset>
 
