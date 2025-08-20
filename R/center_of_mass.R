@@ -128,6 +128,7 @@ get_midline_center_df <- function(
           "{.out[2]}",
           sum(!!mass * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) / (2 * M)
         ),
+        nsum = sum(!is.na(!!mass) & !is.na({{ x }})),
         .groups = 'drop'
       ) |>
       select(-c(M))
@@ -146,6 +147,7 @@ get_midline_center_df <- function(
           (2 * sumV),
         "{.out[2]}" := sum(V * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) /
           (2 * sumV),
+        nsum = sum(!is.na(V) & !is.na({{ x }})),
         .groups = 'drop'
       ) |>
       select(-c(sumV))
@@ -160,6 +162,7 @@ get_midline_center_df <- function(
         sumw = sum(!!width, na.rm = TRUE),
         "{.out[1]}" := sum({{ x }} * !!width) / sumw,
         "{.out[2]}" := sum({{ y }} * !!width) / sumw,
+        nsum = sum(!is.na({{ x }})),
         .groups = 'drop'
       ) |>
       select(-sumw)
@@ -171,10 +174,19 @@ get_midline_center_df <- function(
       summarize(
         "{.out[1]}" := mean({{ x }}, na.rm = TRUE),
         "{.out[2]}" := mean({{ y }}, na.rm = TRUE),
+        nsum = sum(!is.na({{ x }})),
         .groups = 'drop'
       )
   }
 
+  nmax <- max(com$nsum, na.rm = TRUE)
+  if (any((com$nsum > 0) & (com$nsum < nmax), na.rm = TRUE)) {
+    cli::cli_alert_warning(
+      "Some frames have missing points. Dropping COM estimates for those frames"
+    )
+    com <- com |>
+      mutate(across(any_of(.out), \(x) if_else(nsum == nmax, x, NA)))
+  }
   if (method == "mutate") {
     .data <- .data |>
       ungroup() |>
