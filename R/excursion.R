@@ -21,6 +21,7 @@
 #'
 #' @examples
 #' library(dplyr)
+#' library(tidyr)
 #' # run the algorithm across multiple midlines at different times
 #' lampreydata |>
 #'   group_by(t) |>
