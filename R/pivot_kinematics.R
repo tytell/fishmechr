@@ -28,5 +28,5 @@ pivot_kinematics_longer <- function(df, pointnames,
   tidyr::pivot_longer(df, cols = contains(pointnames),
                names_to = c(point_to, ".value"),
                names_sep = sep) |>
-    dplyr::mutate("{point_to}" := factor(.data[[point_to]], levels=pointnames))
+    mutate("{point_to}" := factor(.data[[point_to]], levels=pointnames))
 }

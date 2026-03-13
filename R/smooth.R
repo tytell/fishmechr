@@ -9,7 +9,7 @@
 #' @param spar Smoothing parameter passed to [smooth.spline()]. Values range
 #'   from 0 (no smoothing) to 1 (heavy smoothing).
 #' @param .out Names of the output columns. Should either be a list with the same
-#'   number of elements as cols, or a glue specification as in `dplyr::across` for
+#'   number of elements as cols, or a glue specification as in `across` for
 #'   the `.names` parameter. The default (NULL) means that the output columns will
 #'   have the same name as the original column with an 's' appended at the end.
 #' @param .frame,.point Columns identifying frames and points (defaults are `frame`
@@ -35,27 +35,27 @@ smooth_points_df <- function(
   fillgaps = 0
 ) {
   assertthat::assert_that(
-    !dplyr::is_grouped_df(.data),
+    !is_grouped_df(.data),
     msg = "`smooth_points_df` does not work on grouped data frames. Consider wrapping it in a call to `group_modify` to operate on groups separately"
   )
 
   if (missing(.frame)) {
-    .frame <- rlang::enquo(.frame)
+    .frame <- enquo(.frame)
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.frame)),
+      assertthat::has_name(.data, as_name(.frame)),
       msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column"
     )
   } else {
-    .frame <- rlang::enquo(.frame)
+    .frame <- enquo(.frame)
   }
   if (missing(.point)) {
-    .point <- rlang::enquo(.point)
+    .point <- enquo(.point)
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.point)),
+      assertthat::has_name(.data, as_name(.point)),
       msg = "Default column 'point' not present. Use .point to specify the name of the point column"
     )
   } else {
-    .point <- rlang::enquo(.point)
+    .point <- enquo(.point)
   }
 
   # only look for gaps if they want us to fill them
@@ -64,7 +64,7 @@ smooth_points_df <- function(
       find_gaps_df({{ cols }}, .frame = {{ .frame }})
   } else {
     gapdata <- .data |>
-      dplyr::mutate(gaplen = 0)
+      mutate(gaplen = 0)
   }
 
   if (is.null(.out)) {
@@ -79,14 +79,14 @@ smooth_points_df <- function(
     # assertthat::assert_that(
     #   (length(.out) == 1) ||
     #     length(.out) == length(cols),
-    #   msg = "`.out` must either have the same length as `cols` or must have a name spec suitable for use in `dplyr::across` in the `.names` parameter"
+    #   msg = "`.out` must either have the same length as `cols` or must have a name spec suitable for use in `across` in the `.names` parameter"
     # )
     nms <- .out
   }
 
   gapdata |>
-    dplyr::group_by({{ .point }}) |>
-    dplyr::mutate(dplyr::across(
+    group_by({{ .point }}) |>
+    mutate(across(
       {{ cols }},
       \(y) smooth_point({{ .frame }}, y, spar, goodout = gaplen <= fillgaps),
       .names = nms
@@ -116,19 +116,19 @@ smooth_points_df <- function(
 #' find_gaps_df(df, x)
 find_gaps_df <- function(.data, cols, .frame = frame, .out = c('gaplen')) {
   gaps <- .data |>
-    dplyr::mutate(dplyr::across({{ cols }}, is.na)) |>
-    dplyr::mutate(good = (rowSums(dplyr::pick({{ cols }})) == 0))
+    mutate(across({{ cols }}, is.na)) |>
+    mutate(good = (rowSums(pick({{ cols }})) == 0))
 
   gaps <- gaps |>
-    dplyr::mutate(
-      gapstart = dplyr::if_else(!good & dplyr::lag(good), {{ .frame }}, NA),
-      gapend = dplyr::if_else(!good & dplyr::lead(good), {{ .frame }}, NA)
+    mutate(
+      gapstart = if_else(!good & lag(good), {{ .frame }}, NA),
+      gapend = if_else(!good & lead(good), {{ .frame }}, NA)
     ) |>
-    tidyr::fill(gapend, .direction = 'up') |>
-    tidyr::fill(gapstart, .direction = 'down') |>
-    dplyr::mutate(
-      gaplen = dplyr::if_else(!good, gapend - gapstart + 1, 0),
-      gaplen = dplyr::if_else(is.na(gaplen), 0, gaplen)
+    fill(gapend, .direction = 'up') |>
+    fill(gapstart, .direction = 'down') |>
+    mutate(
+      gaplen = if_else(!good, gapend - gapstart + 1, 0),
+      gaplen = if_else(is.na(gaplen), 0, gaplen)
     )
 
   .data$gaplen = gaps$gaplen

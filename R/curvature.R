@@ -196,9 +196,9 @@ interpolate_points_df <- function(.data, arclen, x,y,
   assertthat::assert_that(tailmethod %in% c("keep", "extrapolate", "NA"))
 
   if (is.null(.out)) {
-    .out = c(paste0(rlang::as_name(rlang::enquo(arclen)), .suffix),
-             paste0(rlang::as_name(rlang::enquo(x)), .suffix),
-             paste0(rlang::as_name(rlang::enquo(y)), .suffix))
+    .out = c(paste0(as_name(enquo(arclen)), .suffix),
+             paste0(as_name(enquo(x)), .suffix),
+             paste0(as_name(enquo(y)), .suffix))
   } else {
     .out <- check.out(.data, .out,
                       .out_default = c(arclen='arclen_s', xs='xs', ys='ys'),
@@ -206,46 +206,46 @@ interpolate_points_df <- function(.data, arclen, x,y,
   }
 
   if (missing(.frame)) {
-    .frame <- rlang::enquo(.frame)
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
+    .frame <- enquo(.frame)
+    assertthat::assert_that(assertthat::has_name(.data, as_name(.frame)),
                             msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
   }
   if (missing(.point)) {
-    .point <- rlang::enquo(.point)
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.point)),
+    .point <- enquo(.point)
+    assertthat::assert_that(assertthat::has_name(.data, as_name(.point)),
                             msg = "Default column 'point' not present. Use .point to specify the name of the point column")
   }
 
   if (is.null(arclen_out)) {
     arclen_out <-
       .data |>
-      dplyr::group_by({{.point}}) |>
-      dplyr::summarize(s = median({{arclen}}, na.rm = TRUE))
+      group_by({{.point}}) |>
+      summarize(s = median({{arclen}}, na.rm = TRUE))
     arclen_out <- arclen_out$s
   }
   assertthat::assert_that(all(is.finite(arclen_out)))
 
   df <- .data |>
-    dplyr::group_by({{.frame}}, .add = TRUE) |>
-    dplyr::mutate(xys = list(interpolate_points_frame({{arclen}}, {{x}},{{y}},
+    group_by({{.frame}}, .add = TRUE) |>
+    mutate(xys = list(interpolate_points_frame({{arclen}}, {{x}},{{y}},
                                                arclen_out, spar, fill_gaps = fill_gaps)),
            "{.out[1]}" := arclen_out,
            "{.out[2]}" := xys[[1]]$xs,
            "{.out[3]}" := xys[[1]]$ys) |>
-    dplyr::select(-xys)
+    select(-xys)
 
   if (tailmethod == "keep") {
     df <- df |>
-      dplyr::mutate(
-        "{.out[1]}" := dplyr::if_else(dplyr::row_number({{arclen}}) == dplyr::n(), {{arclen}}, .data[[.out[1]]]),
-        "{.out[2]}" := dplyr::if_else(dplyr::row_number({{x}}) == dplyr::n(), {{x}}, .data[[.out[2]]]),
-        "{.out[3]}" := dplyr::if_else(dplyr::row_number({{y}}) == dplyr::n(), {{y}}, .data[[.out[3]]]))
+      mutate(
+        "{.out[1]}" := if_else(row_number({{arclen}}) == n(), {{arclen}}, .data[[.out[1]]]),
+        "{.out[2]}" := if_else(row_number({{x}}) == n(), {{x}}, .data[[.out[2]]]),
+        "{.out[3]}" := if_else(row_number({{y}}) == n(), {{y}}, .data[[.out[3]]]))
   } else if (tailmethod == "NA") {
     df <- df |>
-      dplyr::mutate(
-        "{.out[2]}" := dplyr::if_else(dplyr::row_number({{x}}) == dplyr::n() &&
+      mutate(
+        "{.out[2]}" := if_else(row_number({{x}}) == n() &&
                                  .data[[.out[1]]] > {{arclen}}, NA, .data[[.out[2]]]),
-        "{.out[3]}" := dplyr::if_else(dplyr::row_number({{y}}) == dplyr::n() &&
+        "{.out[3]}" := if_else(row_number({{y}}) == n() &&
                                  .data[[.out[1]]] > {{arclen}}, NA, .data[[.out[3]]]))
   }
 
@@ -278,7 +278,7 @@ deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
 
   if (ord == 1) {
     # standard central difference formula for first derivative
-    D <- (dplyr::lead(y) - dplyr::lag(y)) / (dplyr::lead(x) - dplyr::lag(x))
+    D <- (lead(y) - lag(y)) / (lead(x) - lag(x))
 
     if (ends == "forwardback") {
       # forward difference for the first point
@@ -294,9 +294,9 @@ deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
     if (method == 'direct') {
       # direct formula for the second derivative, given uneven spacing in x
       # see https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/
-      D <- 2*dplyr::lag(y) / ((x - dplyr::lag(x))*(dplyr::lead(x) - dplyr::lag(x))) -
-        2*y / ((dplyr::lead(x) - x)*(x - dplyr::lag(x))) +
-        2*dplyr::lead(y) / ((dplyr::lead(x) - x)*(dplyr::lead(x) - dplyr::lag(x)))
+      D <- 2*lag(y) / ((x - lag(x))*(lead(x) - lag(x))) -
+        2*y / ((lead(x) - x)*(x - lag(x))) +
+        2*lead(y) / ((lead(x) - x)*(lead(x) - lag(x)))
 
       if (ends == "drop") {
         D <- D[2:n-1]

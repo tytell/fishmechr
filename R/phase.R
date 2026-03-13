@@ -275,14 +275,14 @@ peak_phase <- function(x, unwrap=TRUE,
   sgn <- sort_by(sgn, ind)
   ind <- sort(ind)
 
-  ph0 <- dplyr::case_when(sgn == 'hi'  ~  0,
+  ph0 <- case_when(sgn == 'hi'  ~  0,
                         sgn == 'down'  ~  pi/2,
                         sgn == 'lo'  ~  pi,
                         sgn == 'up'  ~  3*pi/2,
                         .default = NA)
 
   if (check_ordering) {
-    good <- dplyr::case_when(sgn == 'hi'  ~ lag(sgn) == 'up' & lead(sgn) == 'down',
+    good <- case_when(sgn == 'hi'  ~ lag(sgn) == 'up' & lead(sgn) == 'down',
                              sgn == 'down'  ~  lag(sgn) == 'hi' & lead(sgn) == 'lo',
                              sgn == 'lo'  ~  lag(sgn) == 'down' & lead(sgn) == 'up',
                              sgn == 'up'  ~  lag(sgn) == 'lo' & lead(sgn) == 'hi',

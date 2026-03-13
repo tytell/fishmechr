@@ -25,7 +25,7 @@
 #' lampreydata |>
 #'   group_by(t) |>
 #'   summarize(swimaxis = get_primary_swimming_axis(mxmm, mymm)) |>
-#'   tidyr::unnest(swimaxis)
+#'   unnest(swimaxis)
 get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
   if (all(is.finite(x)) && all(is.finite(y))) {
     if (center) {
@@ -45,7 +45,7 @@ get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
 
     ab <- data.frame(swimaxis_x = S$v[1, 1], swimaxis_y = S$v[2, 1])
     if (center) {
-      ab <- dplyr::bind_cols(
+      ab <- bind_cols(
         ab,
         data.frame(swimaxis_xctr = x_ctr, swimaxis_yctr = y_ctr)
       )
@@ -53,7 +53,7 @@ get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
   } else {
     ab <- data.frame(swimaxis_x = NA, swimaxis_y = NA)
     if (center) {
-      ab <- dplyr::bind_cols(
+      ab <- bind_cols(
         ab,
         data.frame(swimaxis_xctr = NA, swimaxis_yctr = NA)
       )
@@ -136,23 +136,23 @@ get_primary_swimming_axis_df <- function(
     overwrite = overwrite
   )
 
-  .frame <- rlang::enquo(.frame)
+  .frame <- enquo(.frame)
   if (missing(.frame)) {
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.frame)),
+      assertthat::has_name(.data, as_name(.frame)),
       msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column"
     )
   }
-  .point <- rlang::enquo(.point)
+  .point <- enquo(.point)
   if (missing(.point)) {
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.point)),
+      assertthat::has_name(.data, as_name(.point)),
       msg = "Default column 'point' not present. Use .point to specify the name of the point column"
     )
   }
 
   assertthat::assert_that(
-    !dplyr::is_grouped_df(.data),
+    !is_grouped_df(.data),
     msg = "`get_primary_swimming_axis_df` does not work on grouped data frames. Consider wrapping it in a call to `group_modify` to operate on groups separately"
   )
 
@@ -161,16 +161,16 @@ get_primary_swimming_axis_df <- function(
   if (check_reasonableness) {
     centering <-
       .data |>
-      dplyr::group_by(!!.frame) |>
-      dplyr::summarize(
+      group_by(!!.frame) |>
+      summarize(
         xctr = mean({{ x }}, na.rm = TRUE),
         xsd = sd({{ x }}, na.rm = TRUE),
         yctr = mean({{ y }}, na.rm = TRUE),
         ysd = sd({{ y }}, na.rm = TRUE)
       ) |>
-      dplyr::summarize(
-        notcenterx = sum(xctr > xsd, na.rm = TRUE) / dplyr::n(),
-        notcentery = sum(yctr > ysd, na.rm = TRUE) / dplyr::n()
+      summarize(
+        notcenterx = sum(xctr > xsd, na.rm = TRUE) / n(),
+        notcentery = sum(yctr > ysd, na.rm = TRUE) / n()
       )
 
     if (
@@ -185,17 +185,17 @@ get_primary_swimming_axis_df <- function(
   # run across all of the frames
   swimaxis <-
     .data |>
-    dplyr::group_by(!!.frame) |>
-    dplyr::summarize(
+    group_by(!!.frame) |>
+    summarize(
       swimaxis = get_primary_swimming_axis(
         {{ x }},
         {{ y }},
         center = FALSE,
         na.rm = na.rm
       ),
-      tm = dplyr::first({{ tm }})
+      tm = first({{ tm }})
     ) |>
-    tidyr::unnest(swimaxis)
+    unnest(swimaxis)
 
   # get the sampling rate
   dt <- swimaxis$tm[2] - swimaxis$tm[1]
@@ -206,51 +206,51 @@ get_primary_swimming_axis_df <- function(
     filt <- build_filter(hi = cutoff, 1 / dt)
 
     swimaxis <- swimaxis |>
-      dplyr::mutate(
+      mutate(
         swimaxis_x0 = swimaxis_x,
         swimaxis_y0 = swimaxis_y,
-        dplyr::across(c(swimaxis_x, swimaxis_y), \(x) apply_filter(filt, x))
+        across(c(swimaxis_x, swimaxis_y), \(x) apply_filter(filt, x))
       )
 
     # be careful to re-normalize, because the smoothed data doesn't necessarily
     # represent a unit vector
     swimaxis <- swimaxis |>
-      dplyr::mutate(
+      mutate(
         swimaxis_mag = sqrt(swimaxis_x^2 + swimaxis_y^2),
-        dplyr::across(c(swimaxis_x, swimaxis_y), \(x) x / swimaxis_mag)
+        across(c(swimaxis_x, swimaxis_y), \(x) x / swimaxis_mag)
       ) |>
-      dplyr::select(-swimaxis_mag)
+      select(-swimaxis_mag)
   } else {
     swimaxis <- swimaxis |>
-      dplyr::mutate(swimaxis_x0 = swimaxis_x, swimaxis_y0 = swimaxis_y)
+      mutate(swimaxis_x0 = swimaxis_x, swimaxis_y0 = swimaxis_y)
   }
   swimaxis <- swimaxis |>
-    dplyr::rename("{.out[1]}" := swimaxis_x, "{.out[2]}" := swimaxis_y)
+    rename("{.out[1]}" := swimaxis_x, "{.out[2]}" := swimaxis_y)
 
   # the swimming axis is defined once per time, but we need to repeat it for
   # each point along the body, so we use a left_join to repeat the values
   ab <-
-    dplyr::left_join(
+    left_join(
       .data |>
         # ungroup(!!.frame) |>
-        dplyr::select(!!.frame, {{ .point }}, {{ x }}, {{ y }}),
+        select(!!.frame, {{ .point }}, {{ x }}, {{ y }}),
       swimaxis,
-      by = rlang::as_name(.frame)
+      by = as_name(.frame)
     )
 
   # then this centers each midline and projects them on to the swimming axis
   # and the perpendicular axis
   ab <-
     ab |>
-    dplyr::mutate(
+    mutate(
       "{.out[3]}" := {{ x }} * .data[[.out[1]]] + {{ y }} * .data[[.out[2]]],
       "{.out[4]}" := -{{ y }} * .data[[.out[1]]] + {{ x }} * .data[[.out[2]]]
     ) |>
-    dplyr::select(dplyr::any_of(.out), !!.frame, {{ .point }})
+    select(any_of(.out), !!.frame, {{ .point }})
 
-  dplyr::left_join(
-    .data |> dplyr::select(-dplyr::any_of(.out)),
+  left_join(
+    .data |> select(-any_of(.out)),
     ab,
-    by = c(rlang::as_name(.frame), rlang::as_name(.point))
+    by = c(as_name(.frame), as_name(.point))
   )
 }

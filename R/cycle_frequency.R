@@ -97,11 +97,11 @@ get_cycle_numbers <- function(ph, unwrap=FALSE, mod=2*pi,
 
   if (exclude_partial_cycles) {
     d <- tibble::tibble(ph, cyc = floor(ph)) |>
-      dplyr::group_by(cyc) |>
-      dplyr::mutate(lo = min(ph) - cyc,
+      group_by(cyc) |>
+      mutate(lo = min(ph) - cyc,
                     hi = max(ph) - cyc,
                     good = (lo <= 1.5*dph) & (hi >= (1 - 1.5*dph)),
-                    cyc = dplyr::if_else(good, cyc, NA))
+                    cyc = if_else(good, cyc, NA))
 
     d$cyc
   } else {
@@ -153,28 +153,28 @@ get_body_cycle_numbers_df <- function(.data, ph, pointval,
   .out <- check.out(.data, .out, .out_default = c(cycle = 'cycle'),
                     overwrite = overwrite)
 
-  .frame <- rlang::enquo(.frame)
+  .frame <- enquo(.frame)
   if (missing(.frame)) {
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
+    assertthat::assert_that(assertthat::has_name(.data, as_name(.frame)),
                             msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
   }
-  .point <- rlang::enquo(.point)
+  .point <- enquo(.point)
   if (missing(.point)) {
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.point)),
+    assertthat::assert_that(assertthat::has_name(.data, as_name(.point)),
                             msg = "Default column 'point' not present. Use .point to specify the name of the point column")
   }
 
-  by <- rlang::as_name(.frame)
+  by <- as_name(.frame)
 
   cycdf <-
     .data |>
-    dplyr::ungroup() |>
-    dplyr::filter(!!.point == pointval) |>
-    dplyr::mutate("{.out[1]}" := get_cycle_numbers({{ph}}, ...))
+    ungroup() |>
+    filter(!!.point == pointval) |>
+    mutate("{.out[1]}" := get_cycle_numbers({{ph}}, ...))
 
-  dplyr::left_join(.data |>
-                     dplyr::select(-dplyr::any_of(.out)),
+  left_join(.data |>
+                     select(-any_of(.out)),
                    cycdf |>
-                     dplyr::select(dplyr::any_of(by), cycle),
+                     select(any_of(by), cycle),
                    by = by)
 }
