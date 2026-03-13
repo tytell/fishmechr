@@ -11,3 +11,4 @@
 ^Meta$
 ^\.claude$
 ^cran-comments\.md$
+^00check\.log$
