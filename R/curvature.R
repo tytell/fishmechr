@@ -133,7 +133,7 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
   xs[!fillpts] <- NA
   ys[!fillpts] <- NA
 
-  tibble(xs = xs, ys = ys)
+  tibble::tibble(xs = xs, ys = ys)
 }
 
 #' Interpolates and smooths a 2D curve at new arc length
@@ -196,9 +196,9 @@ interpolate_points_df <- function(.data, arclen, x,y,
   assertthat::assert_that(tailmethod %in% c("keep", "extrapolate", "NA"))
 
   if (is.null(.out)) {
-    .out = c(paste0(rlang::as_name(enquo(arclen)), .suffix),
-             paste0(rlang::as_name(enquo(x)), .suffix),
-             paste0(rlang::as_name(enquo(y)), .suffix))
+    .out = c(paste0(rlang::as_name(rlang::enquo(arclen)), .suffix),
+             paste0(rlang::as_name(rlang::enquo(x)), .suffix),
+             paste0(rlang::as_name(rlang::enquo(y)), .suffix))
   } else {
     .out <- check.out(.data, .out,
                       .out_default = c(arclen='arclen_s', xs='xs', ys='ys'),
@@ -206,12 +206,12 @@ interpolate_points_df <- function(.data, arclen, x,y,
   }
 
   if (missing(.frame)) {
-    .frame <- enquo(.frame)
+    .frame <- rlang::enquo(.frame)
     assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
                             msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
   }
   if (missing(.point)) {
-    .point <- enquo(.point)
+    .point <- rlang::enquo(.point)
     assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.point)),
                             msg = "Default column 'point' not present. Use .point to specify the name of the point column")
   }
@@ -219,33 +219,33 @@ interpolate_points_df <- function(.data, arclen, x,y,
   if (is.null(arclen_out)) {
     arclen_out <-
       .data |>
-      group_by({{.point}}) |>
-      summarize(s = median({{arclen}}, na.rm = TRUE))
+      dplyr::group_by({{.point}}) |>
+      dplyr::summarize(s = median({{arclen}}, na.rm = TRUE))
     arclen_out <- arclen_out$s
   }
   assertthat::assert_that(all(is.finite(arclen_out)))
 
   df <- .data |>
-    group_by({{.frame}}, .add = TRUE) |>
-    mutate(xys = list(interpolate_points_frame({{arclen}}, {{x}},{{y}},
+    dplyr::group_by({{.frame}}, .add = TRUE) |>
+    dplyr::mutate(xys = list(interpolate_points_frame({{arclen}}, {{x}},{{y}},
                                                arclen_out, spar, fill_gaps = fill_gaps)),
            "{.out[1]}" := arclen_out,
            "{.out[2]}" := xys[[1]]$xs,
            "{.out[3]}" := xys[[1]]$ys) |>
-    select(-xys)
+    dplyr::select(-xys)
 
   if (tailmethod == "keep") {
     df <- df |>
-      mutate(
-        "{.out[1]}" := if_else(row_number({{arclen}}) == n(), {{arclen}}, .data[[.out[1]]]),
-        "{.out[2]}" := if_else(row_number({{x}}) == n(), {{x}}, .data[[.out[2]]]),
-        "{.out[3]}" := if_else(row_number({{y}}) == n(), {{y}}, .data[[.out[3]]]))
+      dplyr::mutate(
+        "{.out[1]}" := dplyr::if_else(dplyr::row_number({{arclen}}) == dplyr::n(), {{arclen}}, .data[[.out[1]]]),
+        "{.out[2]}" := dplyr::if_else(dplyr::row_number({{x}}) == dplyr::n(), {{x}}, .data[[.out[2]]]),
+        "{.out[3]}" := dplyr::if_else(dplyr::row_number({{y}}) == dplyr::n(), {{y}}, .data[[.out[3]]]))
   } else if (tailmethod == "NA") {
     df <- df |>
-      mutate(
-        "{.out[2]}" := if_else(row_number({{x}}) == n() &&
+      dplyr::mutate(
+        "{.out[2]}" := dplyr::if_else(dplyr::row_number({{x}}) == dplyr::n() &&
                                  .data[[.out[1]]] > {{arclen}}, NA, .data[[.out[2]]]),
-        "{.out[3]}" := if_else(row_number({{y}}) == n() &&
+        "{.out[3]}" := dplyr::if_else(dplyr::row_number({{y}}) == dplyr::n() &&
                                  .data[[.out[1]]] > {{arclen}}, NA, .data[[.out[3]]]))
   }
 
