@@ -105,7 +105,7 @@ get_midline_center_df <- function(
       )
     }
 
-    excludefcn <- function(df) filter(df, !(!!.point %in% excludepoints))
+    excludefcn <- function(df) dplyr::filter(df, !(!!.point %in% excludepoints))
   } else {
     excludefcn <- function(df) df
   }
@@ -125,20 +125,14 @@ get_midline_center_df <- function(
     com <- .data |>
       dplyr::group_by(!!.frame) |>
       excludefcn() |>
-      summarize(
+      dplyr::summarize(
         M = sum(!!mass, na.rm = TRUE),
-        data.table::`:=`(
-          "{.out[1]}",
-          sum(!!mass * ({{ x }} + dplyr::lead({{ x }})), na.rm = TRUE) / (2 * M)
-        ),
-        data.table::`:=`(
-          "{.out[2]}",
-          sum(!!mass * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) / (2 * M)
-        ),
+        "{.out[1]}" := sum(!!mass * ({{ x }} + dplyr::lead({{ x }})), na.rm = TRUE) / (2 * M),
+        "{.out[2]}" := sum(!!mass * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) / (2 * M),
         nsum = sum(!is.na(!!mass) & !is.na({{ x }})),
         .groups = 'drop'
       ) |>
-      select(-c(M))
+      dplyr::select(-c(M))
   } else if (!missing(height) & !missing(width)) {
     cli::cli_alert_info("Estimating center of mass based on width and height")
     width <- rlang::enquo(width)
@@ -146,9 +140,9 @@ get_midline_center_df <- function(
 
     com <- .data |>
       excludefcn() |>
-      group_by(!!.frame) |>
-      mutate(V = get_volume({{ arclen }}, !!width, !!height)) |>
-      summarize(
+      dplyr::group_by(!!.frame) |>
+      dplyr::mutate(V = get_volume({{ arclen }}, !!width, !!height)) |>
+      dplyr::summarize(
         sumV = sum(V, na.rm = TRUE),
         "{.out[1]}" := sum(V * ({{ x }} + dplyr::lead({{ x }})), na.rm = TRUE) /
           (2 * sumV),
@@ -157,28 +151,28 @@ get_midline_center_df <- function(
         nsum = sum(!is.na(V) & !is.na({{ x }})),
         .groups = 'drop'
       ) |>
-      select(-c(sumV))
+      dplyr::select(-c(sumV))
   } else if (!missing(width) & missing(height)) {
     cli::cli_alert_info("Estimating center of mass based on width")
     width <- rlang::enquo(width)
 
     com <- .data |>
-      group_by(!!.frame) |>
+      dplyr::group_by(!!.frame) |>
       excludefcn() |>
-      summarize(
+      dplyr::summarize(
         sumw = sum(!!width, na.rm = TRUE),
         "{.out[1]}" := sum({{ x }} * !!width) / sumw,
         "{.out[2]}" := sum({{ y }} * !!width) / sumw,
         nsum = sum(!is.na({{ x }})),
         .groups = 'drop'
       ) |>
-      select(-sumw)
+      dplyr::select(-sumw)
   } else {
     cli::cli_alert_info("Estimating center of mass as the centroid of x and y")
     com <- .data |>
-      group_by(!!.frame) |>
+      dplyr::group_by(!!.frame) |>
       excludefcn() |>
-      summarize(
+      dplyr::summarize(
         "{.out[1]}" := mean({{ x }}, na.rm = TRUE),
         "{.out[2]}" := mean({{ y }}, na.rm = TRUE),
         nsum = sum(!is.na({{ x }})),
@@ -192,13 +186,13 @@ get_midline_center_df <- function(
       "Some frames have missing points. Dropping COM estimates for those frames"
     )
     com <- com |>
-      mutate(across(any_of(.out), \(x) if_else(nsum == nmax, x, NA)))
+      dplyr::mutate(dplyr::across(dplyr::any_of(.out), \(x) dplyr::if_else(nsum == nmax, x, NA)))
   }
   if (method == "mutate") {
     .data <- .data |>
-      ungroup() |>
-      select(-any_of(.out)) |>
-      left_join(com, by = c(rlang::quo_name(.frame)))
+      dplyr::ungroup() |>
+      dplyr::select(-dplyr::any_of(.out)) |>
+      dplyr::left_join(com, by = c(rlang::quo_name(.frame)))
   } else {
     .data <- com
   }
