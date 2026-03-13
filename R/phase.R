@@ -131,7 +131,7 @@ interpolate_peak_location <- function(y, x = c(-1, 0, 1))
 #' @export
 #' @concept pipeline
 #' @examples
-#' #' t <- seq(0, 4, by=0.1)
+#' t <- seq(0, 4, by=0.1)
 #' # signal that increases in frequency over time
 #' x <- cos(2*pi*t*(2.2 + 0.2*t))
 #' ph <- peak_phase(x)
