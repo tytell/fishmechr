@@ -10,7 +10,9 @@
 #' @param unwrap (TRUE or FALSE) Unwrap the phase. Note that the
 #'   function will not work unless the phase is unwrapped, so you should only
 #'   set unwrap to FALSE if the phase has been unwrapped earlier.
-#' @param method ('deriv' or 'slope') Estimate the frequency based on
+#' @param method ('deriv' or 'slope') Method to estimate the frequency.
+#'   'deriv' takes the derivative of phase vs time; 'slope' fits a line to
+#'   phase vs time and uses the slope.
 #' @param mod Modulus for the phase. Default is `2*pi`.
 #' @param check_reasonableness Runs some simple checks to make sure the data
 #'   make sense. Checks to make sure phase is mostly increasing and warns if
@@ -129,6 +131,20 @@ get_cycle_numbers <- function(ph, unwrap=FALSE, mod=2*pi,
 #' @returns A data frame containing a new column with the cycle numbers named
 #'   'cycle' or as specified in .out.
 #' @export
+#'
+#' @examples
+#' library(dplyr)
+#' # get phase at each frame for one point, then label each complete tail-beat cycle
+#' lampreydata |>
+#'   group_by(frame) |>
+#'   mutate(arclen = arclength(mxmm, mymm)) |>
+#'   ungroup() |>
+#'   interpolate_points_df(arclen, mxmm, mymm) |>
+#'   get_primary_swimming_axis_df(t, mxmm_s, mymm_s) |>
+#'   group_by(point) |>
+#'   mutate(ph = hilbert_phase(exc)) |>
+#'   ungroup() |>
+#'   get_body_cycle_numbers_df(ph, pointval = 10)
 get_body_cycle_numbers_df <- function(.data, ph, pointval,
                                       .frame=frame, .point=point,
                                       .out=NULL,
