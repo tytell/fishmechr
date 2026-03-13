@@ -13,11 +13,23 @@ pivot_kinematics_longer(df, pointnames, point_to = "point", sep = "\\\\.")
 
 \item{point_to}{The name of the column to put the point names in}
 
-\item{sep}{The separator, as a regular expression (default = "\\.")}
+\item{sep}{The separator between the point name and variable name, as a
+regular expression (default = \code{"\\\\."})}
 }
 \value{
 The long data set
 }
 \description{
-Pivots a kinematics dataset into long format
+Converts a wide-format data frame where each point's variables are separate
+columns (e.g. \code{head.x}, \code{head.y}, \code{tail.x}, \code{tail.y}) into a long format
+with one row per point per frame. The point column is returned as a factor
+with levels in the order given by \code{pointnames}.
+}
+\examples{
+df <- data.frame(
+  frame = 1:3,
+  head.x = c(0, 0, 0), head.y = c(0, 1, 2),
+  tail.x = c(5, 5, 5), tail.y = c(0, 1, 2)
+)
+pivot_kinematics_longer(df, c("head", "tail"))
 }

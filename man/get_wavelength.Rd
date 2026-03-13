@@ -29,6 +29,14 @@ get_wavelength(
 certain values of arclength where the phase estimate is not reliable. This
 is often used to exclude points near the head (e.g., \verb{ignore_arclen_vals = \\(s) s < 0.3})}
 
+\item{sort_arclen}{(TRUE or FALSE) Sort the phase values by arc length before
+computing the wavelength. Useful if arc lengths arrive out of order.
+(default = FALSE)}
+
+\item{check_reasonableness}{(TRUE or FALSE) Check that the phase decreases
+along the body as expected for a head-to-tail traveling wave, and warn
+if it does not. (default = TRUE)}
+
 \item{mod}{Modulus for the phase variable}
 
 \item{traveling_wave_dir}{(1 or -1) Defines the direction of the traveling

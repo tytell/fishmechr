@@ -36,3 +36,4 @@ Checks if there are columns with the same names in the data frame \code{.data}.
 Gives a warning if there are such columns and \code{overwrite} is TRUE, and an
 error if \code{overwrite} is FALSE.
 }
+\keyword{internal}

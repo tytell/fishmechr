@@ -28,3 +28,13 @@ For a 2D curve with (x,y) coordinates parameterized by the arc length,
 interpolate new (x,y) coordinates at new arc lengths. Smooth the input
 data with a smoothing spline.
 }
+\examples{
+# get one frame of lamprey midline data
+df1 <- lampreydata[lampreydata$frame == 3, ]
+# compute arc length along the midline
+s <- with(df1, arclength(mxmm, mymm))
+# define 20 evenly-spaced output arc lengths from head to tail
+s_new <- seq(0, max(s, na.rm = TRUE), length.out = 20)
+# interpolate and smooth the midline at the new arc lengths
+with(df1, interpolate_points_frame(s, mxmm, mymm, s_new))
+}

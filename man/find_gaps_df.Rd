@@ -24,3 +24,9 @@ Looks for NAs (gaps) in a data series and counts the number of NAs.
 Useful for \code{smooth_points_df}, which can fill gaps up to a certain length.
 0 means no gap, 1 means a single NA, and so forth.
 }
+\examples{
+# create a data frame with two NA gaps of different lengths
+df <- data.frame(frame = 1:10,
+                 x = c(1, 2, NA, NA, 5, 6, 7, NA, 9, 10))
+find_gaps_df(df, x)
+}

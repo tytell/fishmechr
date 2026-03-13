@@ -8,6 +8,10 @@ arclength(x, y, na.skip = FALSE)
 }
 \arguments{
 \item{x, y}{Coordinates of the curve.}
+
+\item{na.skip}{(TRUE or FALSE) If TRUE, skip NAs and compute arc length for
+the non-NA points, returning NA for the NA positions. If FALSE (default),
+return all NAs if any input point is NA.}
 }
 \value{
 Arc length along the curve.
@@ -18,6 +22,7 @@ then adds them up to get the arc length.
 }
 \examples{
 # compute arc length in each frame from the lamprey data set
+library(dplyr)
 lampreydata |>
   group_by(frame) |>
   mutate(arclen = arclength(mxmm, mymm))

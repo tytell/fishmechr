@@ -55,9 +55,6 @@ for each frame. If mutate, returns a same center position repeated for
 each point in a frame.}
 
 \item{overwrite}{TRUE or FALSE to overwrite existing columns, if present.}
-
-\item{cutoff}{(optional) If this parameter is included, smooth the swimming
-axis data with a low-pass filter with a cutoff at this frequency.}
 }
 \value{
 A data frame containing the original variables along with
@@ -77,10 +74,12 @@ close to uniform density. If given just the width, it uses the width to
 estimate a weight average centroid position.
 }
 \examples{
+library(dplyr)
 lampreydata |>
   group_by(frame) |>
   mutate(arclen = arclength(mxmm, mymm),
          width = interpolate_width(fishwidth$s, fishwidth$ammowidth, arclen)) |>
-  get_midline_center_df(arclen, mxmm,mymm, width=width)
+  ungroup() |>
+  get_midline_center_df(arclen, mxmm, mymm, width = width)
 }
 \concept{pipeline}

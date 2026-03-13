@@ -44,4 +44,19 @@ and uses \code{\link[=get_cycle_numbers]{get_cycle_numbers()}} to get the cycle 
 number data with the original data set so that cycle number is defined for
 each point along the body
 }
+\examples{
+library(dplyr)
+# get phase at each frame for one point, then label each complete tail-beat cycle
+# this is a minimal example; check the vignette for more details. In particular,
+# you generally need to do much more smoothing on the data set for it to give
+# good output
+lampreydata |>
+   group_by(frame) |>
+   mutate(arclen = arclength(mxmm, mymm),
+          curve_ang = curvature(arclen, mxmm, mymm)) |>
+   group_by(point) |>
+   mutate(ph_c = hilbert_phase(curve_ang)) |>
+   ungroup() |>
+   get_body_cycle_numbers_df(ph_c, pointval = 18)
+}
 \concept{pipeline}

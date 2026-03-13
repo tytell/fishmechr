@@ -4,16 +4,16 @@
 \alias{smooth_point}
 \title{Applies a smoothing spline to a data series, potentially with gaps}
 \usage{
-smooth_point(x, y, goodout = NULL, spar)
+smooth_point(x, y, spar, goodout = NULL)
 }
 \arguments{
 \item{x}{x coordinate}
 
 \item{y}{y coordinate, potentially with NAs}
 
-\item{goodout}{Logical vector of where in the x coordinate to interpolate}
+\item{spar}{Smoothing parameter (see \code{\link[=smooth.spline]{smooth.spline()}})}
 
-\item{spar}{Smoothing parameter (see \code{smooth.spline})}
+\item{goodout}{Logical vector of where in the x coordinate to interpolate}
 }
 \value{
 The smoothed values
@@ -22,4 +22,11 @@ The smoothed values
 Builds a smoothing spline for y(x), where \code{y} may contain gaps (NAs).
 Ignores the NAs. The uses the spline to interpolate values at the
 same \code{x} coordinates, potentially filling in the gaps.
+}
+\examples{
+# smooth a noisy sine wave with two missing points
+x <- 1:20
+y <- sin(2 * pi * x / 10) + rnorm(20, sd = 0.1)
+y[c(9, 10)] <- NA
+smooth_point(x, y, spar = 0.5)
 }

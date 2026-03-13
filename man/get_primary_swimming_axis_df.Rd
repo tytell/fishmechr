@@ -65,4 +65,15 @@ Uses \code{\link[=get_primary_swimming_axis]{get_primary_swimming_axis()}} to co
 Then optionally smooths the axis using a Butterworth filter, and then
 projects the midlines on to the new time-varying axes.
 }
+\examples{
+library(dplyr)
+# subtract the center of mass, then estimate the primary swimming axis
+lampreydata |>
+  group_by(frame) |>
+  mutate(arclen = arclength(mxmm, mymm)) |>
+  ungroup() |>
+  get_midline_center_df(arclen, mxmm, mymm) |>
+  mutate(mxmm_ctr = mxmm - xcom, mymm_ctr = mymm - ycom) |>
+  get_primary_swimming_axis_df(t, mxmm_ctr, mymm_ctr)
+}
 \concept{pipeline}

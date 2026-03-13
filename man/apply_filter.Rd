@@ -20,3 +20,10 @@ Filtered data set
 Wrapper function for \code{gsignal::filtfilt} to apply a filter to a dataset.
 Potentially skips NAs in the data set (see \code{\link[=skip_na]{skip_na()}} for details).
 }
+\examples{
+filt <- build_filter(hi = 5, sampfreq = 100)
+# 2 Hz signal sampled at 100 Hz with high-frequency noise and two NA gaps
+x <- sin(2 * pi * (1:100) / 100 * 2) + rnorm(100, sd = 0.3)
+x[c(30, 31, 70)] <- NA
+apply_filter(filt, x)
+}
