@@ -4,6 +4,9 @@
 #' then adds them up to get the arc length.
 #'
 #' @param x,y Coordinates of the curve.
+#' @param na.skip (TRUE or FALSE) If TRUE, skip NAs and compute arc length for
+#'   the non-NA points, returning NA for the NA positions. If FALSE (default),
+#'   return all NAs if any input point is NA.
 #'
 #' @returns Arc length along the curve.
 #' @export
@@ -12,6 +15,7 @@
 #'
 #' @examples
 #' # compute arc length in each frame from the lamprey data set
+#' library(dplyr)
 #' lampreydata |>
 #'   group_by(frame) |>
 #'   mutate(arclen = arclength(mxmm, mymm))
@@ -65,6 +69,14 @@ arclength <- function(x, y,
 #' @export
 #'
 #' @examples
+#' # get one frame of lamprey midline data
+#' df1 <- lampreydata[lampreydata$frame == 3, ]
+#' # compute arc length along the midline
+#' s <- with(df1, arclength(mxmm, mymm))
+#' # define 20 evenly-spaced output arc lengths from head to tail
+#' s_new <- seq(0, max(s, na.rm = TRUE), length.out = 20)
+#' # interpolate and smooth the midline at the new arc lengths
+#' with(df1, interpolate_points_frame(s, mxmm, mymm, s_new))
 interpolate_points_frame <- function(arclen, x,y, arclen_out,
                                      spar = 0.1, fill_gaps = 0)
 {
@@ -164,6 +176,13 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
 #'
 #' @concept pipeline
 #' @examples
+#' library(dplyr)
+#' # compute arc length, then interpolate all midlines to 20 evenly-spaced points
+#' lampreydata |>
+#'   group_by(frame) |>
+#'   mutate(arclen = arclength(mxmm, mymm)) |>
+#'   ungroup() |>
+#'   interpolate_points_df(arclen, mxmm, mymm)
 interpolate_points_df <- function(.data, arclen, x,y,
                                   arclen_out = NULL,
                                   spar = 0.8,
@@ -244,6 +263,10 @@ interpolate_points_df <- function(.data, arclen, x,y,
 #'   * 'direct' (default) Uses a direct formula, based on a central difference of
 #'     forward and backward differences, from [https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/]
 #'   * 'repeat' Repeat two first derivatives.
+#' @param ends ('forwardback', 'NA', or 'drop') How to handle the endpoints
+#'   where central differencing is not possible. `'forwardback'` (default) uses
+#'   forward differencing at the first point and backward differencing at the
+#'   last. `'NA'` sets endpoints to NA. `'drop'` removes the endpoints.
 #'
 #' @returns Derivative of y relative to x.
 #' @export
