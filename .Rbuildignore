@@ -10,3 +10,4 @@
 ^extra$
 ^Meta$
 ^\.claude$
+^cran-comments\.md$
