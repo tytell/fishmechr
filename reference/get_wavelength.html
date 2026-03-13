@@ -29,7 +29,7 @@ half of a wavelength.
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,8 +44,10 @@ half of a wavelength.
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/prickleback_swimming.html">prickleback_swimming</a></li>
     <li><a class="dropdown-item" href="../articles/process_sleap_data.html">process_sleap_data</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tytell/fishmechr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -55,7 +57,7 @@ half of a wavelength.
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Computes the body wavelength based on the phase at each point and the arc length</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/tytell/fishmechr/blob/main/R/wavelength.R" class="external-link"><code>R/wavelength.R</code></a></small>
       <div class="d-none name"><code>get_wavelength.Rd</code></div>
     </div>
 
@@ -112,6 +114,18 @@ certain values of arclength where the phase estimate is not reliable. This
 is often used to exclude points near the head (e.g., <code>ignore_arclen_vals = \(s) s &lt; 0.3</code>)</p></dd>
 
 
+<dt id="arg-sort-arclen">sort_arclen<a class="anchor" aria-label="anchor" href="#arg-sort-arclen"></a></dt>
+<dd><p>(TRUE or FALSE) Sort the phase values by arc length before
+computing the wavelength. Useful if arc lengths arrive out of order.
+(default = FALSE)</p></dd>
+
+
+<dt id="arg-check-reasonableness">check_reasonableness<a class="anchor" aria-label="anchor" href="#arg-check-reasonableness"></a></dt>
+<dd><p>(TRUE or FALSE) Check that the phase decreases
+along the body as expected for a head-to-tail traveling wave, and warn
+if it does not. (default = TRUE)</p></dd>
+
+
 <dt id="arg-mod">mod<a class="anchor" aria-label="anchor" href="#arg-mod"></a></dt>
 <dd><p>Modulus for the phase variable</p></dd>
 
@@ -145,7 +159,7 @@ wave. For a normal head-to-tail traveling wave, use -1 (default)</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

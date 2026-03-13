@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,11 +38,13 @@
     <li><a class="dropdown-item" href="../articles/process_sleap_data.html">process_sleap_data</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tytell/fishmechr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -59,7 +61,7 @@
       <h1>prickleback_swimming</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/tytell/fishmechr/blob/main/vignettes/prickleback_swimming.Rmd" class="external-link"><code>vignettes/prickleback_swimming.Rmd</code></a></small>
       <div class="d-none name"><code>prickleback_swimming.Rmd</code></div>
     </div>
 
@@ -67,20 +69,6 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tytell.github.io/fishmechr/">fishmechr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'dplyr::filter' by 'gsignal::filter' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::conv' by 'pracma::conv' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::ifftshift' by 'pracma::ifftshift'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::findpeaks' by 'pracma::findpeaks'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::fftshift' by 'pracma::fftshift'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::ifft' by 'pracma::ifft' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::detrend' by 'pracma::detrend' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'fishmechr'</span></span>
 <span><span class="co">#&gt; The following object is masked from 'package:stats':</span></span>
@@ -161,7 +149,7 @@ what is shown in the main vignette.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, color <span class="op">=</span> <span class="va">frame_idx</span>, group <span class="op">=</span> <span class="va">frame_idx</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="prickleback_swimming_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p><img src="prickleback_swimming_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="700"></p>
 <div class="section level3">
 <h3 id="get-arc-length">Get arc length<a class="anchor" aria-label="anchor" href="#get-arc-length"></a>
 </h3>
@@ -176,7 +164,7 @@ what is shown in the main vignette.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">bodypart</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BP2"</span>, <span class="st">"BP5"</span>, <span class="st">"Tail"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">frame_idx</span>, y <span class="op">=</span> <span class="va">arclen0</span>, color <span class="op">=</span> <span class="va">bodypart</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="prickleback_swimming_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="prickleback_swimming_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="interpolate-to-constant-arc-length">Interpolate to constant arc length<a class="anchor" aria-label="anchor" href="#interpolate-to-constant-arc-length"></a>
@@ -197,7 +185,7 @@ what is shown in the main vignette.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x_s</span>, y <span class="op">=</span> <span class="va">y_s</span><span class="op">)</span>, shape <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="prickleback_swimming_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p><img src="prickleback_swimming_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="interpolate-the-width">Interpolate the width<a class="anchor" aria-label="anchor" href="#interpolate-the-width"></a>
@@ -244,7 +232,7 @@ what is shown in the main vignette.</p>
 <span>               <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">xcom</span>, y <span class="op">=</span> <span class="va">ycom</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">frame_idx</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="prickleback_swimming_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p><img src="prickleback_swimming_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -258,7 +246,7 @@ what is shown in the main vignette.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

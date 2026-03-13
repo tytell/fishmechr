@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,11 +38,13 @@
     <li><a class="dropdown-item" href="../articles/process_sleap_data.html">process_sleap_data</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tytell/fishmechr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -59,7 +61,7 @@
       <h1>process_sleap_data</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/tytell/fishmechr/blob/main/vignettes/process_sleap_data.Rmd" class="external-link"><code>vignettes/process_sleap_data.Rmd</code></a></small>
       <div class="d-none name"><code>process_sleap_data.Rmd</code></div>
     </div>
 
@@ -67,20 +69,6 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tytell.github.io/fishmechr/">fishmechr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'dplyr::filter' by 'gsignal::filter' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::conv' by 'pracma::conv' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::ifftshift' by 'pracma::ifftshift'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::findpeaks' by 'pracma::findpeaks'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::fftshift' by 'pracma::fftshift'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::ifft' by 'pracma::ifft' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::detrend' by 'pracma::detrend' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'fishmechr'</span></span>
 <span><span class="co">#&gt; The following object is masked from 'package:stats':</span></span>
@@ -223,7 +211,7 @@ frames.</p>
 <span><span class="co">#&gt; (`geom_point()`).</span></span>
 <span><span class="co">#&gt; Warning: Removed 12 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="700"></p>
 <p>This shows just the y coordinate against frame number.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zfdata_good</span> <span class="op">|&gt;</span> </span>
@@ -236,7 +224,7 @@ frames.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 39 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="" width="700"></p>
 <p>This smooths the data and fills in gaps. Focus just on the points
 along the ventral midline for right now.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
@@ -265,7 +253,7 @@ along the ventral midline for right now.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">frame_idx</span>, y <span class="op">=</span> <span class="va">ys</span>, color <span class="op">=</span> <span class="va">point</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="" width="700"></p>
 <p>Now we need to find the center of mass. For that we need the width
 and height of the body at each point along the body. These values are
 all in fractions of the total length.</p>
@@ -274,7 +262,7 @@ all in fractions of the total length.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">s</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">width</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">height</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="" width="700"></p>
 <p>Now interpolate and scale these width and height values for the
 actual length of our fish.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
@@ -342,14 +330,14 @@ actual length of our fish.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">exc_x</span>, y <span class="op">=</span> <span class="va">exc</span>, color <span class="op">=</span> <span class="va">point</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">frame_idx</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-20-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zfdata_ctr</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">point</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"peduncle"</span>, <span class="st">"ventral_caudal"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="co"># filter(between(t, 1, 1.2)) |&gt; </span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">t</span>, y <span class="op">=</span> <span class="va">exc</span>, color <span class="op">=</span> <span class="va">point</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-21-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zfdata_phase</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -386,7 +374,7 @@ actual length of our fish.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">point</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 20 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-23-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zfdata_phase</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -399,7 +387,7 @@ actual length of our fish.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">point</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 26 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-24-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zfdata_cyc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -435,11 +423,15 @@ actual length of our fish.</p>
 <span>            arclen <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">arclen</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">arclen</span>, y <span class="op">=</span> <span class="va">amp</span>, color <span class="op">=</span> <span class="va">speed</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">cycle</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'speed', 'point'. You can override using</span></span>
-<span><span class="co">#&gt; the `.groups` argument.</span></span>
+<span><span class="co">#&gt; `summarise()` has regrouped the output.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Summaries were computed grouped by <span style="color: #0000BB;">speed</span>, <span style="color: #0000BB;">point</span>, and <span style="color: #0000BB;">cycle</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is grouped by <span style="color: #0000BB;">speed</span> and <span style="color: #0000BB;">point</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.groups = "drop_last")` to silence this message.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.by = c(speed, point, cycle))` for per-operation grouping</span></span>
+<span><span class="co">#&gt;   (`?dplyr::dplyr_by`) instead.</span></span>
 <span><span class="co">#&gt; Warning: Removed 8 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-26-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zfdata_cyc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">zfdata_cyc</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
@@ -453,15 +445,19 @@ actual length of our fish.</p>
 <span>            arclen <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">arclen</span><span class="op">)</span>,</span>
 <span>            meanfreq <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">meanfreq</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'speed'. You can override using the</span></span>
-<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span><span class="co">#&gt; `summarise()` has regrouped the output.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Summaries were computed grouped by <span style="color: #0000BB;">speed</span> and <span style="color: #0000BB;">cycle</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is grouped by <span style="color: #0000BB;">speed</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.groups = "drop_last")` to silence this message.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.by = c(speed, cycle))` for per-operation grouping</span></span>
+<span><span class="co">#&gt;   (`?dplyr::dplyr_by`) instead.</span></span>
 <span></span>
 <span><span class="va">zfsummary</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">speed</span>, y <span class="op">=</span> <span class="va">meanfreq</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">speed</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 11 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
+<p><img src="process_sleap_data_files/figure-html/unnamed-chunk-28-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  </span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">zfsummary</span>, <span class="st">"zfsummary.csv"</span><span class="op">)</span></span></code></pre></div>
@@ -475,7 +471,7 @@ actual length of our fish.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

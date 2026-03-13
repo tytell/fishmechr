@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,11 +38,13 @@
     <li><a class="dropdown-item" href="../articles/process_sleap_data.html">process_sleap_data</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tytell/fishmechr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -59,7 +61,7 @@
       <h1>fishmechr</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/tytell/fishmechr/blob/main/vignettes/fishmechr.Rmd" class="external-link"><code>vignettes/fishmechr.Rmd</code></a></small>
       <div class="d-none name"><code>fishmechr.Rmd</code></div>
     </div>
 
@@ -67,20 +69,6 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tytell.github.io/fishmechr/">fishmechr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'dplyr::filter' by 'gsignal::filter' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::conv' by 'pracma::conv' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::ifftshift' by 'pracma::ifftshift'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::findpeaks' by 'pracma::findpeaks'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::fftshift' by 'pracma::fftshift'</span></span>
-<span><span class="co">#&gt; when loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::ifft' by 'pracma::ifft' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'gsignal::detrend' by 'pracma::detrend' when</span></span>
-<span><span class="co">#&gt; loading 'fishmechr'</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'fishmechr'</span></span>
 <span><span class="co">#&gt; The following object is masked from 'package:stats':</span></span>
@@ -566,7 +554,7 @@ these are in <code>mxmm</code> and <code>mymm</code>, indicating
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">mxmm</span>, <span class="va">mymm</span>, color <span class="op">=</span> <span class="va">frame</span>, group <span class="op">=</span> <span class="va">frame</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>
 <div class="section level2">
@@ -591,7 +579,7 @@ we’ll need to interpolate so that they’re in the same place.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 6 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-5-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="700">
 Here’s the interpolation.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lampreydata</span> <span class="op">&lt;-</span> <span class="va">lampreydata</span> <span class="op">|&gt;</span> </span>
@@ -609,7 +597,7 @@ requires extrapolating to get the tail position.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">mxmm_s</span>, y <span class="op">=</span> <span class="va">mymm_s</span><span class="op">)</span>, shape <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="get-the-width">Get the width<a class="anchor" aria-label="anchor" href="#get-the-width"></a>
@@ -655,7 +643,7 @@ most fishes).</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">s</span>, y <span class="op">=</span> <span class="va">ammowidth</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">'Arc length (BL)'</span>, y <span class="op">=</span> <span class="st">'Width (BL)'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="700"></p>
 <p>Here, we interpolated the width from the separate data frame so that
 it’s defined at the right arc lengths for our lamprey data set.
 <code>interpolate_width</code> assumes that <code>arclen</code> is in
@@ -715,7 +703,7 @@ arc length is in mm.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">frame</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.x</span>, <span class="va">point</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">xcom</span>, y <span class="op">=</span> <span class="va">ycom</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="compute-curvature">Compute curvature<a class="anchor" aria-label="anchor" href="#compute-curvature"></a>
@@ -740,7 +728,7 @@ arc length is in mm.</p>
 <span><span class="co">#&gt; (`geom_path()`).</span></span>
 <span><span class="co">#&gt; Removed 4 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-14-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="" width="700">
 Plot curvature as a function of time for two different points along the
 body. For the Hilbert analysis to work well, these should be close to
 sinusoidal and centered around 0.</p>
@@ -752,7 +740,7 @@ sinusoidal and centered around 0.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="get-excursion">Get excursion<a class="anchor" aria-label="anchor" href="#get-excursion"></a>
@@ -777,7 +765,7 @@ sinusoidal and centered around 0.</p>
 <span>               <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">xcom</span>, y <span class="op">=</span> <span class="va">ycom</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">frame</span> <span class="op">~</span> <span class="va">.</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" alt="" width="700"></p>
 <p>Similar to curvature, we can compute phases based on the lateral
 excursions (<code>b</code>). As above, they need to be mostly sinusoidal
 and centered around zero.</p>
@@ -789,7 +777,7 @@ and centered around zero.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 4 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="phase">Phase<a class="anchor" aria-label="anchor" href="#phase"></a>
@@ -838,7 +826,7 @@ smoothing each point individually (i.e., use
 <span><span class="co">#&gt; (`geom_path()`).</span></span>
 <span><span class="co">#&gt; Removed 4 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-22-1.png" class="r-plt" alt="" width="700"></p>
 <p>Now we compute the phase of each body point as it oscillates over
 time, looking at either the curvature <code>curve_ang</code> or the
 excursion <code>b</code>.</p>
@@ -883,7 +871,7 @@ phase based on excursion.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">point</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 93 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-24-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-24-1.png" class="r-plt" alt="" width="700">
 Note that the curvature based phase (solid line) tends to fluctuate a
 lot for point 3, which is near the head where curvature is small.</p>
 </div>
@@ -965,7 +953,7 @@ lot for point 3, which is near the head where curvature is small.</p>
 <span><span class="co">#&gt; (`geom_path()`).</span></span>
 <span><span class="co">#&gt; Removed 108 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-25-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>
 <div class="section level3">
@@ -996,7 +984,7 @@ body, although they ought to be the same.</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Run `dplyr::last_dplyr_warnings()` to see the 3 remaining warnings.</span></span>
 <span><span class="co">#&gt; Warning: Removed 79 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-26-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-26-1.png" class="r-plt" alt="" width="700">
 # Body wavelength</p>
 <p>Body wavelength, as described above, is the derivative of the phase
 of each point along the body with respect to arc length. Phase typically
@@ -1010,7 +998,7 @@ decreases along the body, which indicates a backward traveling wave.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">frame</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 20 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-27-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-27-1.png" class="r-plt" alt="" width="700">
 The apparent discontinuity at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 = 50mm is not real. It just reflects the fact that phase goes from
@@ -1030,7 +1018,7 @@ removed.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>phbody <span class="op">=</span> <span class="fu">gsignal</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gsignal/man/unwrap.html" class="external-link">unwrap</a></span><span class="op">(</span><span class="va">ph_e</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">arclen</span>, y <span class="op">=</span> <span class="va">phbody</span>, color <span class="op">=</span> <span class="va">frame</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">frame</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-28-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="methods-of-estimating-wavelength">Methods of estimating wavelength<a class="anchor" aria-label="anchor" href="#methods-of-estimating-wavelength"></a>
@@ -1084,7 +1072,7 @@ less than 30mm from the head.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 41 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-29-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-29-1.png" class="r-plt" alt="" width="700">
 Here, you can see that all of the methods give similar results, but
 there are different numbers of values and different resolution along the
 body. We suggest the “halfcycle” option as a good, relatively robust
@@ -1112,7 +1100,7 @@ compromise.</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Run `dplyr::last_dplyr_warnings()` to see the 5 remaining warnings.</span></span>
 <span><span class="co">#&gt; Warning: Removed 2838 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-30-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-30-1.png" class="r-plt" alt="" width="700">
 Here we see that wavelength estimated based on curvature is slightly
 noisier than curvature based on excursion, and that both fluctuate over
 time.</p>
@@ -1140,7 +1128,7 @@ time.</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Run `dplyr::last_dplyr_warnings()` to see the 5 remaining warnings.</span></span>
 <span><span class="co">#&gt; Warning: Removed 2838 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-31-1.png" width="700">
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-31-1.png" class="r-plt" alt="" width="700">
 This plot shows wavelength as a function of body position and estimation
 method. The curvature-based wavelengths seem to increase along the body
 (aside from some erroneous very low values very close to the tail),
@@ -1193,11 +1181,15 @@ present in this trial.</p>
 <span>            arclen <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">arclen</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">arclen</span>, y <span class="op">=</span> <span class="va">amp</span>, color <span class="op">=</span> <span class="va">cycle</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_path</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">cycle</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'point'. You can override using the</span></span>
-<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span><span class="co">#&gt; `summarise()` has regrouped the output.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Summaries were computed grouped by <span style="color: #0000BB;">point</span> and <span style="color: #0000BB;">cycle</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is grouped by <span style="color: #0000BB;">point</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.groups = "drop_last")` to silence this message.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.by = c(point, cycle))` for per-operation grouping</span></span>
+<span><span class="co">#&gt;   (`?dplyr::dplyr_by`) instead.</span></span>
 <span><span class="co">#&gt; Warning: Removed 20 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_path()`).</span></span></code></pre></div>
-<p><img src="fishmechr_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
+<p><img src="fishmechr_files/figure-html/unnamed-chunk-33-1.png" class="r-plt" alt="" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -1210,7 +1202,7 @@ present in this trial.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

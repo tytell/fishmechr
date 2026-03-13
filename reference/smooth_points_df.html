@@ -9,7 +9,7 @@ a smoothing spline. Optionally fills in gaps of less than fillgaps frames."></he
 
     <a class="navbar-brand me-2" href="../index.html">fishmechr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,8 +24,10 @@ a smoothing spline. Optionally fills in gaps of less than fillgaps frames."></he
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/prickleback_swimming.html">prickleback_swimming</a></li>
     <li><a class="dropdown-item" href="../articles/process_sleap_data.html">process_sleap_data</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tytell/fishmechr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -35,7 +37,7 @@ a smoothing spline. Optionally fills in gaps of less than fillgaps frames."></he
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Smooths locations of points over time</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/tytell/fishmechr/blob/main/R/smooth.R" class="external-link"><code>R/smooth.R</code></a></small>
       <div class="d-none name"><code>smooth_points_df.Rd</code></div>
     </div>
 
@@ -70,9 +72,14 @@ a smoothing spline. Optionally fills in gaps of less than <code>fillgaps</code> 
 be the x and y coordinates of the midline.</p></dd>
 
 
+<dt id="arg-spar">spar<a class="anchor" aria-label="anchor" href="#arg-spar"></a></dt>
+<dd><p>Smoothing parameter passed to <code><a href="https://rdrr.io/r/stats/smooth.spline.html" class="external-link">smooth.spline()</a></code>. Values range
+from 0 (no smoothing) to 1 (heavy smoothing).</p></dd>
+
+
 <dt id="arg--out">.out<a class="anchor" aria-label="anchor" href="#arg--out"></a></dt>
 <dd><p>Names of the output columns. Should either be a list with the same
-number of elements as cols, or a glue specification as in <code><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">dplyr::across</a></code> for
+number of elements as cols, or a glue specification as in <code>across</code> for
 the <code>.names</code> parameter. The default (NULL) means that the output columns will
 have the same name as the original column with an 's' appended at the end.</p></dd>
 
@@ -92,6 +99,29 @@ to fill gaps</p></dd>
     <p>A data frame containing the smoothed points</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># smooth x and y coordinates of the lamprey midline over time</span></span></span>
+<span class="r-in"><span><span class="va">lampreydata</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu">smooth_points_df</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mxmm</span>, <span class="va">mymm</span><span class="op">)</span>, spar <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1,600 × 8</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># Groups:   point [20]</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        t frame point  mxmm  mymm gaplen mxmms mymms</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  0.02     1     1    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  425.  137.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  0.02     1     2    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  433.  136.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  0.02     1     3    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  441.  137.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  0.02     1     4    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  449.  137.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  0.02     1     5    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  457.  138.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  0.02     1     6    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  464.  141.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  0.02     1     7    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  471.  146.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  0.02     1     8    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  477.  152.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  0.02     1     9    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  485.  156.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  0.02     1    10    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      0  493.  157.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1,590 more rows</span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
@@ -101,7 +131,7 @@ to fill gaps</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
