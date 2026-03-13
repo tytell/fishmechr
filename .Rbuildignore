@@ -1,3 +1,14 @@
 ^data-raw$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.github$
+^test from Olivia$
+^LICENSE\.md$
+^_pkgdown\.yml$
+^doc$
+^docs$
+^extra$
+^Meta$
+^\.claude$
+^cran-comments\.md$
+^00check\.log$

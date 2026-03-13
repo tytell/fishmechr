@@ -7,6 +7,7 @@
 #'
 #' @param x A vector that may have NAs
 #' @param f The function to run on the vector
+#' @param min.len Minimum number of non-NA values required to run `f` (default 1)
 #' @param ... Other parameters to supply to the function
 #'
 #' @return A vector with the same length as `x` with NAs in the same places
@@ -46,13 +47,15 @@ skip_na <- function(x, f, min.len = 1, ...) {
 #' @param newcols Names of the columns, as strings
 #' @param overwrite TRUE or FALSE to overwrite the columns
 #'
-#' @export
+#' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #' df <- data.frame(a=c(1,2,3), b=c(1,2,3))
 #'
 #' # this should give a warning
 #' check_if_overwrite_columns(df, c('a', 'd'), overwrite=TRUE)
+#' }
 check_if_overwrite_columns <- function(df, newcols, overwrite) {
   if (any(newcols %in% colnames(df))) {
     dfname <- "Data frame"
@@ -98,7 +101,7 @@ check_if_overwrite_columns <- function(df, newcols, overwrite) {
 #' @param overwrite TRUE or FALSE to overwrite columns.
 #'
 #' @returns The updated `.out` list.
-#' @export
+#' @keywords internal
 check.out <- function(.data, .out, .out_default, overwrite) {
   if (is.null(.out)) {
     .out <- .out_default

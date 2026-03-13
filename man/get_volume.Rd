@@ -27,3 +27,8 @@ and dw and dh are the difference in width or height from
 one end to the other (e.g., dw = w(s) - w(0) if w is a function of
 s)
 }
+\examples{
+# volume of lamprey body segments using measured width and estimated height
+h <- seq(0.05, 0.03, length.out = nrow(fishwidth))  # height tapers head to tail
+get_volume(fishwidth$s, fishwidth$ammowidth, h)
+}

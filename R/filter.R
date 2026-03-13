@@ -55,6 +55,13 @@ build_filter <- function(lo = NULL, hi = NULL, sampfreq, order = 13) {
 #'
 #' @return Filtered data set
 #' @export
+#'
+#' @examples
+#' filt <- build_filter(hi = 5, sampfreq = 100)
+#' # 2 Hz signal sampled at 100 Hz with high-frequency noise and two NA gaps
+#' x <- sin(2 * pi * (1:100) / 100 * 2) + rnorm(100, sd = 0.3)
+#' x[c(30, 31, 70)] <- NA
+#' apply_filter(filt, x)
 apply_filter <- function(filt, x, na.skip = TRUE) {
   if (na.skip) {
     skip_na(x, \(y) gsignal::filtfilt(filt, y))

@@ -20,6 +20,8 @@
 #' @export
 #'
 #' @examples
+#' library(dplyr)
+#' library(tidyr)
 #' # run the algorithm across multiple midlines at different times
 #' lampreydata |>
 #'   group_by(t) |>
@@ -37,14 +39,14 @@ get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
 
     XY <- matrix(c(x, y), ncol = 2)
     if (na.rm) {
-      XY = na.omit(XY)
+      XY = stats::na.omit(XY)
     }
 
     S <- svd(XY)
 
     ab <- data.frame(swimaxis_x = S$v[1, 1], swimaxis_y = S$v[2, 1])
     if (center) {
-      ab <- dplyr::bind_cols(
+      ab <- bind_cols(
         ab,
         data.frame(swimaxis_xctr = x_ctr, swimaxis_yctr = y_ctr)
       )
@@ -52,7 +54,7 @@ get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
   } else {
     ab <- data.frame(swimaxis_x = NA, swimaxis_y = NA)
     if (center) {
-      ab <- dplyr::bind_cols(
+      ab <- bind_cols(
         ab,
         data.frame(swimaxis_xctr = NA, swimaxis_yctr = NA)
       )
@@ -99,6 +101,17 @@ get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
 #'
 #' @concept pipeline
 #' @export
+#'
+#' @examples
+#' library(dplyr)
+#' # subtract the center of mass, then estimate the primary swimming axis
+#' lampreydata |>
+#'   group_by(frame) |>
+#'   mutate(arclen = arclength(mxmm, mymm)) |>
+#'   ungroup() |>
+#'   get_midline_center_df(arclen, mxmm, mymm) |>
+#'   mutate(mxmm_ctr = mxmm - xcom, mymm_ctr = mymm - ycom) |>
+#'   get_primary_swimming_axis_df(t, mxmm_ctr, mymm_ctr)
 get_primary_swimming_axis_df <- function(
   .data,
   tm,
@@ -127,14 +140,14 @@ get_primary_swimming_axis_df <- function(
   .frame <- enquo(.frame)
   if (missing(.frame)) {
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.frame)),
+      assertthat::has_name(.data, as_name(.frame)),
       msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column"
     )
   }
   .point <- enquo(.point)
   if (missing(.point)) {
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.point)),
+      assertthat::has_name(.data, as_name(.point)),
       msg = "Default column 'point' not present. Use .point to specify the name of the point column"
     )
   }
@@ -183,7 +196,7 @@ get_primary_swimming_axis_df <- function(
       ),
       tm = first({{ tm }})
     ) |>
-    tidyr::unnest(swimaxis)
+    unnest(swimaxis)
 
   # get the sampling rate
   dt <- swimaxis$tm[2] - swimaxis$tm[1]
@@ -223,7 +236,7 @@ get_primary_swimming_axis_df <- function(
         # ungroup(!!.frame) |>
         select(!!.frame, {{ .point }}, {{ x }}, {{ y }}),
       swimaxis,
-      by = rlang::as_name(.frame)
+      by = as_name(.frame)
     )
 
   # then this centers each midline and projects them on to the swimming axis
@@ -239,6 +252,6 @@ get_primary_swimming_axis_df <- function(
   left_join(
     .data |> select(-any_of(.out)),
     ab,
-    by = c(rlang::as_name(.frame), rlang::as_name(.point))
+    by = c(as_name(.frame), as_name(.point))
   )
 }

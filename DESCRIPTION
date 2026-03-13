@@ -1,6 +1,6 @@
 Package: fishmechr
 Title: Computes Kinematic Parameters for Swimming
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: 
     person("Eric", "Tytell", , "eric.tytell@tufts.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6603-9448"))
@@ -12,26 +12,31 @@ Description: Processes tracked points on a fish's body and uses them to estimate
     chapter Hawkins, O.H., Di Santo, V., Tytell, Eric.D., 2025. "Biomechanics and 
     energetics of swimming", in: Higham, T.E., Lauder, G.V. (Eds.), Integrative 
     Fish Biomechanics, Fish Physiology. Academic Press. 
-    https://doi.org/10.1016/bs.fp.2025.06.003
+    <doi:10.1016/bs.fp.2025.06.003>.
 License: CC BY 4.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-Depends: 
-    R (>= 2.10)
+RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.4.0)
 LazyData: true
-Imports: 
+Imports:
     assertthat,
+    cli,
     dplyr,
     gsignal,
-    pracma
-Suggests: 
-    knitr,
-    rmarkdown,
+    pracma,
+    rlang,
+    tibble,
     tidyr,
+    tidyselect
+Suggests:
     ggplot2,
+    knitr,
     patchwork,
+    rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://tytell.github.io/fishmechr/
+BugReports: https://github.com/tytell/fishmechr/issues

@@ -57,7 +57,7 @@ point.
 Uses \code{\link[pracma:findpeaks]{pracma::findpeaks()}} to locate peaks.
 }
 \examples{
-#' t <- seq(0, 4, by=0.1)
+t <- seq(0, 4, by=0.1)
 # signal that increases in frequency over time
 x <- cos(2*pi*t*(2.2 + 0.2*t))
 ph <- peak_phase(x)

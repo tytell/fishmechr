@@ -20,8 +20,11 @@ smooth_points_df(
 \item{cols}{Columns containing the components to be smoothed. Often these will
 be the x and y coordinates of the midline.}
 
+\item{spar}{Smoothing parameter passed to \code{\link[=smooth.spline]{smooth.spline()}}. Values range
+from 0 (no smoothing) to 1 (heavy smoothing).}
+
 \item{.out}{Names of the output columns. Should either be a list with the same
-number of elements as cols, or a glue specification as in \code{dplyr::across} for
+number of elements as cols, or a glue specification as in \code{across} for
 the \code{.names} parameter. The default (NULL) means that the output columns will
 have the same name as the original column with an 's' appended at the end.}
 
@@ -37,4 +40,10 @@ A data frame containing the smoothed points
 \description{
 Smooths columns specified in \code{cols} for each individual point over time, using
 a smoothing spline. Optionally fills in gaps of less than \code{fillgaps} frames.
+}
+\examples{
+library(dplyr)
+# smooth x and y coordinates of the lamprey midline over time
+lampreydata |>
+  smooth_points_df(c(mxmm, mymm), spar = 0.6)
 }

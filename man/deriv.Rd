@@ -16,9 +16,15 @@ deriv(x, y, ord = 1, method = "direct", ends = "forwardback")
 \item{method}{Method for taking second derivatives. Either
 \itemize{
 \item 'direct' (default) Uses a direct formula, based on a central difference of
-forward and backward differences, from \link{https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/}
+forward and backward differences, from
+\url{https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/}
 \item 'repeat' Repeat two first derivatives.
 }}
+
+\item{ends}{('forwardback', 'NA', or 'drop') How to handle the endpoints
+where central differencing is not possible. \code{'forwardback'} (default) uses
+forward differencing at the first point and backward differencing at the
+last. \code{'NA'} sets endpoints to NA. \code{'drop'} removes the endpoints.}
 }
 \value{
 Derivative of y relative to x.

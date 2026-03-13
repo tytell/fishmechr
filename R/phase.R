@@ -131,7 +131,7 @@ interpolate_peak_location <- function(y, x = c(-1, 0, 1))
 #' @export
 #' @concept pipeline
 #' @examples
-#' #' t <- seq(0, 4, by=0.1)
+#' t <- seq(0, 4, by=0.1)
 #' # signal that increases in frequency over time
 #' x <- cos(2*pi*t*(2.2 + 0.2*t))
 #' ph <- peak_phase(x)
@@ -252,7 +252,7 @@ peak_phase <- function(x, unwrap=TRUE,
     izero <- c(izerodown, izeroup)
     zerosign <- factor(c(rep_len('down', length(izerodown)), rep_len('up', length(izeroup))),
                         levels = signlevels)
-    zerosign <- sort_by(izerosign, izero)
+    zerosign <- sort_by(zerosign, izero)
     izero <- sort(izero)
 
     izerooff <- rep_len(0, length(izero))
@@ -275,14 +275,14 @@ peak_phase <- function(x, unwrap=TRUE,
   sgn <- sort_by(sgn, ind)
   ind <- sort(ind)
 
-  ph0 <- dplyr::case_when(sgn == 'hi'  ~  0,
+  ph0 <- case_when(sgn == 'hi'  ~  0,
                         sgn == 'down'  ~  pi/2,
                         sgn == 'lo'  ~  pi,
                         sgn == 'up'  ~  3*pi/2,
                         .default = NA)
 
   if (check_ordering) {
-    good <- dplyr::case_when(sgn == 'hi'  ~ lag(sgn) == 'up' & lead(sgn) == 'down',
+    good <- case_when(sgn == 'hi'  ~ lag(sgn) == 'up' & lead(sgn) == 'down',
                              sgn == 'down'  ~  lag(sgn) == 'hi' & lead(sgn) == 'lo',
                              sgn == 'lo'  ~  lag(sgn) == 'down' & lead(sgn) == 'up',
                              sgn == 'up'  ~  lag(sgn) == 'lo' & lead(sgn) == 'hi',

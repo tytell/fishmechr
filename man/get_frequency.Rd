@@ -22,7 +22,9 @@ get_frequency(
 function will not work unless the phase is unwrapped, so you should only
 set unwrap to FALSE if the phase has been unwrapped earlier.}
 
-\item{method}{('deriv' or 'slope') Estimate the frequency based on}
+\item{method}{('deriv' or 'slope') Method to estimate the frequency.
+'deriv' takes the derivative of phase vs time; 'slope' fits a line to
+phase vs time and uses the slope.}
 
 \item{mod}{Modulus for the phase. Default is \code{2*pi}.}
 

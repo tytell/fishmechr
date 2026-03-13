@@ -5,7 +5,7 @@
 .DS_Store
 .quarto
 inst/doc
-NAMESPACE
 docs
+00check.log
 /doc/
 /Meta/

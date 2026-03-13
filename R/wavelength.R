@@ -22,6 +22,12 @@
 #' @param mod Modulus for the phase variable
 #' @param traveling_wave_dir (1 or -1) Defines the direction of the traveling
 #'   wave. For a normal head-to-tail traveling wave, use -1 (default)
+#' @param sort_arclen (TRUE or FALSE) Sort the phase values by arc length before
+#'   computing the wavelength. Useful if arc lengths arrive out of order.
+#'   (default = FALSE)
+#' @param check_reasonableness (TRUE or FALSE) Check that the phase decreases
+#'   along the body as expected for a head-to-tail traveling wave, and warn
+#'   if it does not. (default = TRUE)
 #'
 #' @returns The wavelength as a vector the same size as the phase variable
 #' @export
@@ -119,26 +125,4 @@ get_wavelength <- function(arclen, ph, unwrap=TRUE, method='deriv',
   wavelen
 }
 
-get_wavelength_dx <- function(x, y, curve)
-{
-  izero <- which(sign(y[1:length(y)-1]) == -sign(y[2:length(y)]))
-
-  if (length(izero) >= 2) {
-    if (length(izero) > 2) {
-      izero <- izero[(length(izero)-1):length(izero)]
-    }
-
-    off <- (x[izero+1] - x[izero]) / (y[izero+1] - y[izero]) * (0 - y[izero])
-    xzero <- x[izero] + off
-
-    wavelen2 <- xzero[2] - xzero[1]
-
-    imaxcurve <- which.max(abs(curve[izero[1]:izero[2]])) + izero[1] - 1
-    wavelenctr <- x[imaxcurve]
-
-    data.frame(wavelen2 = wavelen2, wavelenctr = wavelenctr)
-  } else {
-    data.frame(wavelen2 = NA, wavelenctr = NA)
-  }
-}
 

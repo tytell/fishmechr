@@ -72,4 +72,13 @@ data with a smoothing spline.
 \details{
 Operates on each frame (as defined in the \code{.frame} parameter) individually.
 }
+\examples{
+library(dplyr)
+# compute arc length, then interpolate all midlines to 20 evenly-spaced points
+lampreydata |>
+  group_by(frame) |>
+  mutate(arclen = arclength(mxmm, mymm)) |>
+  ungroup() |>
+  interpolate_points_df(arclen, mxmm, mymm)
+}
 \concept{pipeline}

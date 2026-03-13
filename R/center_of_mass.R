@@ -30,8 +30,6 @@
 #' @param excludepoints Exclude these points when estimating center. Some points
 #'   (like the tip of the tail) have relatively little mass and are hard to track,
 #'   so can introduce errors.
-#' @param cutoff (optional) If this parameter is included, smooth the swimming
-#'   axis data with a low-pass filter with a cutoff at this frequency.
 #' @param method 'mutate' or 'summarize'. If summarize, returns one center position
 #'   for each frame. If mutate, returns a same center position repeated for
 #'   each point in a frame.
@@ -44,11 +42,13 @@
 #'
 #' @concept pipeline
 #' @examples
+#' library(dplyr)
 #' lampreydata |>
 #'   group_by(frame) |>
 #'   mutate(arclen = arclength(mxmm, mymm),
 #'          width = interpolate_width(fishwidth$s, fishwidth$ammowidth, arclen)) |>
-#'   get_midline_center_df(arclen, mxmm,mymm, width=width)
+#'   ungroup() |>
+#'   get_midline_center_df(arclen, mxmm, mymm, width = width)
 get_midline_center_df <- function(
   .data,
   arclen,
@@ -81,7 +81,7 @@ get_midline_center_df <- function(
   if (missing(.frame)) {
     .frame <- enquo(.frame)
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.frame)),
+      assertthat::has_name(.data, as_name(.frame)),
       msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column"
     )
   } else {
@@ -92,14 +92,14 @@ get_midline_center_df <- function(
     if (missing(.point)) {
       .point <- enquo(.point)
       assertthat::assert_that(
-        assertthat::has_name(.data, rlang::as_name(.point)),
+        assertthat::has_name(.data, as_name(.point)),
         msg = "Default column 'point' not present. Use .point to specify the name of the point column"
       )
     } else {
       .point <- enquo(.point)
     }
 
-    if (any(!(excludepoints %in% rlang::eval_tidy(.point, .data)))) {
+    if (any(!(excludepoints %in% eval_tidy(.point, .data)))) {
       cli::cli_alert_warning(
         'Some excluded points are not present in the data set'
       )
@@ -111,38 +111,32 @@ get_midline_center_df <- function(
   }
 
   if (method == "mutate") {
-    fcn <- dplyr::mutate
+    fcn <- mutate
   } else if (method %in% c("summarize", "summarise")) {
-    fcn <- dplyr::summarise
+    fcn <- summarise
   }
 
   if (!missing(mass)) {
     cli::cli_alert_info(
       "Estimating true center of mass based on mass distribution"
     )
-    mass <- rlang::enquo(mass)
+    mass <- enquo(mass)
 
     com <- .data |>
-      dplyr::group_by(!!.frame) |>
+      group_by(!!.frame) |>
       excludefcn() |>
       summarize(
         M = sum(!!mass, na.rm = TRUE),
-        data.table::`:=`(
-          "{.out[1]}",
-          sum(!!mass * ({{ x }} + dplyr::lead({{ x }})), na.rm = TRUE) / (2 * M)
-        ),
-        data.table::`:=`(
-          "{.out[2]}",
-          sum(!!mass * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) / (2 * M)
-        ),
+        "{.out[1]}" := sum(!!mass * ({{ x }} + lead({{ x }})), na.rm = TRUE) / (2 * M),
+        "{.out[2]}" := sum(!!mass * ({{ y }} + lead({{ y }})), na.rm = TRUE) / (2 * M),
         nsum = sum(!is.na(!!mass) & !is.na({{ x }})),
         .groups = 'drop'
       ) |>
       select(-c(M))
   } else if (!missing(height) & !missing(width)) {
     cli::cli_alert_info("Estimating center of mass based on width and height")
-    width <- rlang::enquo(width)
-    height <- rlang::enquo(height)
+    width <- enquo(width)
+    height <- enquo(height)
 
     com <- .data |>
       excludefcn() |>
@@ -150,9 +144,9 @@ get_midline_center_df <- function(
       mutate(V = get_volume({{ arclen }}, !!width, !!height)) |>
       summarize(
         sumV = sum(V, na.rm = TRUE),
-        "{.out[1]}" := sum(V * ({{ x }} + dplyr::lead({{ x }})), na.rm = TRUE) /
+        "{.out[1]}" := sum(V * ({{ x }} + lead({{ x }})), na.rm = TRUE) /
           (2 * sumV),
-        "{.out[2]}" := sum(V * ({{ y }} + dplyr::lead({{ y }})), na.rm = TRUE) /
+        "{.out[2]}" := sum(V * ({{ y }} + lead({{ y }})), na.rm = TRUE) /
           (2 * sumV),
         nsum = sum(!is.na(V) & !is.na({{ x }})),
         .groups = 'drop'
@@ -160,7 +154,7 @@ get_midline_center_df <- function(
       select(-c(sumV))
   } else if (!missing(width) & missing(height)) {
     cli::cli_alert_info("Estimating center of mass based on width")
-    width <- rlang::enquo(width)
+    width <- enquo(width)
 
     com <- .data |>
       group_by(!!.frame) |>
@@ -198,7 +192,7 @@ get_midline_center_df <- function(
     .data <- .data |>
       ungroup() |>
       select(-any_of(.out)) |>
-      left_join(com, by = c(rlang::quo_name(.frame)))
+      left_join(com, by = c(quo_name(.frame)))
   } else {
     .data <- com
   }
@@ -227,11 +221,14 @@ get_midline_center_df <- function(
 #' @export
 #'
 #' @examples
+#' # volume of lamprey body segments using measured width and estimated height
+#' h <- seq(0.05, 0.03, length.out = nrow(fishwidth))  # height tapers head to tail
+#' get_volume(fishwidth$s, fishwidth$ammowidth, h)
 get_volume <- function(arclen, width, height) {
-  ds <- dplyr::lead(arclen) - arclen
+  ds <- lead(arclen) - arclen
 
-  dw <- dplyr::lead(width) - width
-  dh <- dplyr::lead(height) - height
+  dw <- lead(width) - width
+  dh <- lead(height) - height
 
   pi *
     ds *

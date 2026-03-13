@@ -23,8 +23,11 @@ Produces a warning if the columns are present but \code{overwrite} is true, and
 an error if \code{overwrite} is false.
 }
 \examples{
+\dontrun{
 df <- data.frame(a=c(1,2,3), b=c(1,2,3))
 
 # this should give a warning
 check_if_overwrite_columns(df, c('a', 'd'), overwrite=TRUE)
 }
+}
+\keyword{internal}

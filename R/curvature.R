@@ -4,6 +4,9 @@
 #' then adds them up to get the arc length.
 #'
 #' @param x,y Coordinates of the curve.
+#' @param na.skip (TRUE or FALSE) If TRUE, skip NAs and compute arc length for
+#'   the non-NA points, returning NA for the NA positions. If FALSE (default),
+#'   return all NAs if any input point is NA.
 #'
 #' @returns Arc length along the curve.
 #' @export
@@ -12,6 +15,7 @@
 #'
 #' @examples
 #' # compute arc length in each frame from the lamprey data set
+#' library(dplyr)
 #' lampreydata |>
 #'   group_by(frame) |>
 #'   mutate(arclen = arclength(mxmm, mymm))
@@ -65,6 +69,14 @@ arclength <- function(x, y,
 #' @export
 #'
 #' @examples
+#' # get one frame of lamprey midline data
+#' df1 <- lampreydata[lampreydata$frame == 3, ]
+#' # compute arc length along the midline
+#' s <- with(df1, arclength(mxmm, mymm))
+#' # define 20 evenly-spaced output arc lengths from head to tail
+#' s_new <- seq(0, max(s, na.rm = TRUE), length.out = 20)
+#' # interpolate and smooth the midline at the new arc lengths
+#' with(df1, interpolate_points_frame(s, mxmm, mymm, s_new))
 interpolate_points_frame <- function(arclen, x,y, arclen_out,
                                      spar = 0.1, fill_gaps = 0)
 {
@@ -121,7 +133,7 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
   xs[!fillpts] <- NA
   ys[!fillpts] <- NA
 
-  tibble(xs = xs, ys = ys)
+  tibble::tibble(xs = xs, ys = ys)
 }
 
 #' Interpolates and smooths a 2D curve at new arc length
@@ -164,6 +176,13 @@ interpolate_points_frame <- function(arclen, x,y, arclen_out,
 #'
 #' @concept pipeline
 #' @examples
+#' library(dplyr)
+#' # compute arc length, then interpolate all midlines to 20 evenly-spaced points
+#' lampreydata |>
+#'   group_by(frame) |>
+#'   mutate(arclen = arclength(mxmm, mymm)) |>
+#'   ungroup() |>
+#'   interpolate_points_df(arclen, mxmm, mymm)
 interpolate_points_df <- function(.data, arclen, x,y,
                                   arclen_out = NULL,
                                   spar = 0.8,
@@ -177,9 +196,9 @@ interpolate_points_df <- function(.data, arclen, x,y,
   assertthat::assert_that(tailmethod %in% c("keep", "extrapolate", "NA"))
 
   if (is.null(.out)) {
-    .out = c(paste0(rlang::as_name(enquo(arclen)), .suffix),
-             paste0(rlang::as_name(enquo(x)), .suffix),
-             paste0(rlang::as_name(enquo(y)), .suffix))
+    .out = c(paste0(as_name(enquo(arclen)), .suffix),
+             paste0(as_name(enquo(x)), .suffix),
+             paste0(as_name(enquo(y)), .suffix))
   } else {
     .out <- check.out(.data, .out,
                       .out_default = c(arclen='arclen_s', xs='xs', ys='ys'),
@@ -188,12 +207,12 @@ interpolate_points_df <- function(.data, arclen, x,y,
 
   if (missing(.frame)) {
     .frame <- enquo(.frame)
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
+    assertthat::assert_that(assertthat::has_name(.data, as_name(.frame)),
                             msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
   }
   if (missing(.point)) {
     .point <- enquo(.point)
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.point)),
+    assertthat::assert_that(assertthat::has_name(.data, as_name(.point)),
                             msg = "Default column 'point' not present. Use .point to specify the name of the point column")
   }
 
@@ -242,8 +261,13 @@ interpolate_points_df <- function(.data, arclen, x,y,
 #' @param ord Order of the derivative (1 or 2).
 #' @param method Method for taking second derivatives. Either
 #'   * 'direct' (default) Uses a direct formula, based on a central difference of
-#'     forward and backward differences, from [https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/]
+#'     forward and backward differences, from
+#'     <https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/>
 #'   * 'repeat' Repeat two first derivatives.
+#' @param ends ('forwardback', 'NA', or 'drop') How to handle the endpoints
+#'   where central differencing is not possible. `'forwardback'` (default) uses
+#'   forward differencing at the first point and backward differencing at the
+#'   last. `'NA'` sets endpoints to NA. `'drop'` removes the endpoints.
 #'
 #' @returns Derivative of y relative to x.
 #' @export
@@ -255,7 +279,7 @@ deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
 
   if (ord == 1) {
     # standard central difference formula for first derivative
-    D <- (dplyr::lead(y) - dplyr::lag(y)) / (dplyr::lead(x) - dplyr::lag(x))
+    D <- (lead(y) - lag(y)) / (lead(x) - lag(x))
 
     if (ends == "forwardback") {
       # forward difference for the first point
@@ -271,9 +295,9 @@ deriv <- function(x, y, ord = 1, method = 'direct', ends = 'forwardback')
     if (method == 'direct') {
       # direct formula for the second derivative, given uneven spacing in x
       # see https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/
-      D <- 2*dplyr::lag(y) / ((x - dplyr::lag(x))*(dplyr::lead(x) - dplyr::lag(x))) -
-        2*y / ((dplyr::lead(x) - x)*(x - dplyr::lag(x))) +
-        2*dplyr::lead(y) / ((dplyr::lead(x) - x)*(dplyr::lead(x) - dplyr::lag(x)))
+      D <- 2*lag(y) / ((x - lag(x))*(lead(x) - lag(x))) -
+        2*y / ((lead(x) - x)*(x - lag(x))) +
+        2*lead(y) / ((lead(x) - x)*(lead(x) - lag(x)))
 
       if (ends == "drop") {
         D <- D[2:n-1]

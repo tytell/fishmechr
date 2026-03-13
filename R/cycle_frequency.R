@@ -10,7 +10,9 @@
 #' @param unwrap (TRUE or FALSE) Unwrap the phase. Note that the
 #'   function will not work unless the phase is unwrapped, so you should only
 #'   set unwrap to FALSE if the phase has been unwrapped earlier.
-#' @param method ('deriv' or 'slope') Estimate the frequency based on
+#' @param method ('deriv' or 'slope') Method to estimate the frequency.
+#'   'deriv' takes the derivative of phase vs time; 'slope' fits a line to
+#'   phase vs time and uses the slope.
 #' @param mod Modulus for the phase. Default is `2*pi`.
 #' @param check_reasonableness Runs some simple checks to make sure the data
 #'   make sense. Checks to make sure phase is mostly increasing and warns if
@@ -26,9 +28,14 @@
 #' ph <- 2*pi*(t * 2.3)
 #'
 #' get_frequency(t, ph)
-get_frequency <- function(t, ph, unwrap=FALSE, method='deriv', mod=2*pi,
-                          check_reasonableness=TRUE)
-{
+get_frequency <- function(
+  t,
+  ph,
+  unwrap = FALSE,
+  method = 'deriv',
+  mod = 2 * pi,
+  check_reasonableness = TRUE
+) {
   if (unwrap) {
     ph <- skip_na(ph, gsignal::unwrap)
   }
@@ -37,17 +44,19 @@ get_frequency <- function(t, ph, unwrap=FALSE, method='deriv', mod=2*pi,
     freq <- deriv(t, ph) / mod
 
     if (check_reasonableness) {
-      fracneg <- sum(freq < 0, na.rm=TRUE) / length(freq)
+      fracneg <- sum(freq < 0, na.rm = TRUE) / length(freq)
 
-      if (fracneg > 0.05)
-        warning("Phase seems to go backwards a lot, which may indicate an overly noisy signal")
+      if (fracneg > 0.05) {
+        warning(
+          "Phase seems to go backwards a lot, which may indicate an overly noisy signal"
+        )
+      }
     }
   } else if (method == "slope") {
     if (any(is.finite(ph)) && any(is.finite(t))) {
       m <- stats::lm(ph ~ t, na.action = na.omit)
-      freq <- coefficients(m)[2] / mod
-    }
-    else {
+      freq <- stats::coefficients(m)[2] / mod
+    } else {
       freq <- NA
     }
   }
@@ -83,9 +92,12 @@ get_frequency <- function(t, ph, unwrap=FALSE, method='deriv', mod=2*pi,
 #' get_cycle_numbers(ph, unwrap=TRUE)
 #'
 #' @seealso [get_body_cycle_numbers_df()]
-get_cycle_numbers <- function(ph, unwrap=FALSE, mod=2*pi,
-                              exclude_partial_cycles=TRUE)
-{
+get_cycle_numbers <- function(
+  ph,
+  unwrap = FALSE,
+  mod = 2 * pi,
+  exclude_partial_cycles = TRUE
+) {
   if (unwrap) {
     ph <- skip_na(ph, gsignal::unwrap)
   }
@@ -95,11 +107,13 @@ get_cycle_numbers <- function(ph, unwrap=FALSE, mod=2*pi,
 
   if (exclude_partial_cycles) {
     d <- tibble::tibble(ph, cyc = floor(ph)) |>
-      dplyr::group_by(cyc) |>
-      dplyr::mutate(lo = min(ph) - cyc,
-                    hi = max(ph) - cyc,
-                    good = (lo <= 1.5*dph) & (hi >= (1 - 1.5*dph)),
-                    cyc = dplyr::if_else(good, cyc, NA))
+      group_by(cyc) |>
+      mutate(
+        lo = min(ph) - cyc,
+        hi = max(ph) - cyc,
+        good = (lo <= 1.5 * dph) & (hi >= (1 - 1.5 * dph)),
+        cyc = if_else(good, cyc, NA)
+      )
 
     d$cyc
   } else {
@@ -129,36 +143,66 @@ get_cycle_numbers <- function(ph, unwrap=FALSE, mod=2*pi,
 #' @returns A data frame containing a new column with the cycle numbers named
 #'   'cycle' or as specified in .out.
 #' @export
-get_body_cycle_numbers_df <- function(.data, ph, pointval,
-                                      .frame=frame, .point=point,
-                                      .out=NULL,
-                                      overwrite=TRUE, ...)
-{
-  .out <- check.out(.data, .out, .out_default = c(cycle = 'cycle'),
-                    overwrite = overwrite)
+#'
+#' @examples
+#' library(dplyr)
+#' # get phase at each frame for one point, then label each complete tail-beat cycle
+#' # this is a minimal example; check the vignette for more details. In particular,
+#' # you generally need to do much more smoothing on the data set for it to give
+#' # good output
+#' lampreydata |>
+#'    group_by(frame) |>
+#'    mutate(arclen = arclength(mxmm, mymm),
+#'           curve_ang = curvature(arclen, mxmm, mymm)) |>
+#'    group_by(point) |>
+#'    mutate(ph_c = hilbert_phase(curve_ang)) |>
+#'    ungroup() |>
+#'    get_body_cycle_numbers_df(ph_c, pointval = 18)
+get_body_cycle_numbers_df <- function(
+  .data,
+  ph,
+  pointval,
+  .frame = frame,
+  .point = point,
+  .out = NULL,
+  overwrite = TRUE,
+  ...
+) {
+  .out <- check.out(
+    .data,
+    .out,
+    .out_default = c(cycle = 'cycle'),
+    overwrite = overwrite
+  )
 
-  .frame <- rlang::enquo(.frame)
+  .frame <- enquo(.frame)
   if (missing(.frame)) {
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.frame)),
-                            msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column")
+    assertthat::assert_that(
+      assertthat::has_name(.data, as_name(.frame)),
+      msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column"
+    )
   }
-  .point <- rlang::enquo(.point)
+  .point <- enquo(.point)
   if (missing(.point)) {
-    assertthat::assert_that(assertthat::has_name(.data, rlang::as_name(.point)),
-                            msg = "Default column 'point' not present. Use .point to specify the name of the point column")
+    assertthat::assert_that(
+      assertthat::has_name(.data, as_name(.point)),
+      msg = "Default column 'point' not present. Use .point to specify the name of the point column"
+    )
   }
 
-  by <- rlang::as_name(.frame)
+  by <- as_name(.frame)
 
   cycdf <-
     .data |>
-    dplyr::ungroup() |>
-    dplyr::filter(!!.point == pointval) |>
-    dplyr::mutate("{.out[1]}" := get_cycle_numbers({{ph}}, ...))
+    ungroup() |>
+    filter(!!.point == pointval) |>
+    mutate("{.out[1]}" := get_cycle_numbers({{ ph }}, ...))
 
-  dplyr::left_join(.data |>
-                     dplyr::select(-dplyr::any_of(.out)),
-                   cycdf |>
-                     dplyr::select(dplyr::any_of(by), cycle),
-                   by = by)
+  left_join(
+    .data |>
+      select(-any_of(.out)),
+    cycdf |>
+      select(any_of(by), cycle),
+    by = by
+  )
 }

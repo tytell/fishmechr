@@ -29,6 +29,8 @@ around zero, so it optionally subtracts off the mean of x and y. For more
 sophisticated centering algorithms, see \code{\link[=get_midline_center_df]{get_midline_center_df()}}.
 }
 \examples{
+library(dplyr)
+library(tidyr)
 # run the algorithm across multiple midlines at different times
 lampreydata |>
   group_by(t) |>

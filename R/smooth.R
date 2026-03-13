@@ -6,8 +6,10 @@
 #' @param .data Data frame containing the midlines.
 #' @param cols Columns containing the components to be smoothed. Often these will
 #'   be the x and y coordinates of the midline.
+#' @param spar Smoothing parameter passed to [smooth.spline()]. Values range
+#'   from 0 (no smoothing) to 1 (heavy smoothing).
 #' @param .out Names of the output columns. Should either be a list with the same
-#'   number of elements as cols, or a glue specification as in `dplyr::across` for
+#'   number of elements as cols, or a glue specification as in `across` for
 #'   the `.names` parameter. The default (NULL) means that the output columns will
 #'   have the same name as the original column with an 's' appended at the end.
 #' @param .frame,.point Columns identifying frames and points (defaults are `frame`
@@ -19,6 +21,10 @@
 #' @export
 #'
 #' @examples
+#' library(dplyr)
+#' # smooth x and y coordinates of the lamprey midline over time
+#' lampreydata |>
+#'   smooth_points_df(c(mxmm, mymm), spar = 0.6)
 smooth_points_df <- function(
   .data,
   cols,
@@ -30,13 +36,13 @@ smooth_points_df <- function(
 ) {
   assertthat::assert_that(
     !is_grouped_df(.data),
-    msg = "`get_midline_center_df` does not work on grouped data frames. Consider wrapping it in a call to `group_modify` to operate on groups separately"
+    msg = "`smooth_points_df` does not work on grouped data frames. Consider wrapping it in a call to `group_modify` to operate on groups separately"
   )
 
   if (missing(.frame)) {
     .frame <- enquo(.frame)
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.frame)),
+      assertthat::has_name(.data, as_name(.frame)),
       msg = "Default column 'frame' not present. Use .frame to specify the name of the frame column"
     )
   } else {
@@ -45,7 +51,7 @@ smooth_points_df <- function(
   if (missing(.point)) {
     .point <- enquo(.point)
     assertthat::assert_that(
-      assertthat::has_name(.data, rlang::as_name(.point)),
+      assertthat::has_name(.data, as_name(.point)),
       msg = "Default column 'point' not present. Use .point to specify the name of the point column"
     )
   } else {
@@ -64,11 +70,17 @@ smooth_points_df <- function(
   if (is.null(.out)) {
     nms <- '{.col}s'
   } else {
-    assertthat::assert_that(
-      (length(.out) == 1) ||
-        length(.out) == length(cols),
-      msg = "`.out` must either have the same length as `cols` or must have a name spec suitable for use in `dplyr::across` in the `.names` parameter"
-    )
+    # TODO: at some point, figure out how to check the length of
+    # the column names in cols without evaluating and check that
+    # .out matches.
+
+    # For the moment, assume that the user did it correctly.
+
+    # assertthat::assert_that(
+    #   (length(.out) == 1) ||
+    #     length(.out) == length(cols),
+    #   msg = "`.out` must either have the same length as `cols` or must have a name spec suitable for use in `across` in the `.names` parameter"
+    # )
     nms <- .out
   }
 
@@ -76,7 +88,7 @@ smooth_points_df <- function(
     group_by({{ .point }}) |>
     mutate(across(
       {{ cols }},
-      \(y) smooth_point({{ .frame }}, y, gaplen <= fillgaps, spar = spar),
+      \(y) smooth_point({{ .frame }}, y, spar, goodout = gaplen <= fillgaps),
       .names = nms
     ))
 }
@@ -98,6 +110,10 @@ smooth_points_df <- function(
 #' @export
 #'
 #' @examples
+#' # create a data frame with two NA gaps of different lengths
+#' df <- data.frame(frame = 1:10,
+#'                  x = c(1, 2, NA, NA, 5, 6, 7, NA, 9, 10))
+#' find_gaps_df(df, x)
 find_gaps_df <- function(.data, cols, .frame = frame, .out = c('gaplen')) {
   gaps <- .data |>
     mutate(across({{ cols }}, is.na)) |>
@@ -105,8 +121,8 @@ find_gaps_df <- function(.data, cols, .frame = frame, .out = c('gaplen')) {
 
   gaps <- gaps |>
     mutate(
-      gapstart = if_else(!good & dplyr::lag(good), {{ .frame }}, NA),
-      gapend = if_else(!good & dplyr::lead(good), {{ .frame }}, NA)
+      gapstart = if_else(!good & lag(good), {{ .frame }}, NA),
+      gapend = if_else(!good & lead(good), {{ .frame }}, NA)
     ) |>
     fill(gapend, .direction = 'up') |>
     fill(gapstart, .direction = 'down') |>
@@ -129,13 +145,18 @@ find_gaps_df <- function(.data, cols, .frame = frame, .out = c('gaplen')) {
 #' @param x x coordinate
 #' @param y y coordinate, potentially with NAs
 #' @param goodout Logical vector of where in the x coordinate to interpolate
-#' @param spar Smoothing parameter (see `smooth.spline`)
+#' @param spar Smoothing parameter (see [smooth.spline()])
 #'
 #' @returns The smoothed values
 #' @export
 #'
 #' @examples
-smooth_point <- function(x, y, goodout = NULL, spar) {
+#' # smooth a noisy sine wave with two missing points
+#' x <- 1:20
+#' y <- sin(2 * pi * x / 10) + rnorm(20, sd = 0.1)
+#' y[c(9, 10)] <- NA
+#' smooth_point(x, y, spar = 0.5)
+smooth_point <- function(x, y, spar, goodout = NULL) {
   ys <- numeric(length(y))
   good <- !is.na(y)
 
@@ -145,10 +166,10 @@ smooth_point <- function(x, y, goodout = NULL, spar) {
 
   ys <- rep(NA, length(y))
   if (any(good)) {
-    sp <- smooth.spline(x[good], y[good], spar = spar)
+    sp <- stats::smooth.spline(x[good], y[good], spar = spar)
 
     if (any(goodout)) {
-      ys[goodout] = predict(sp, x = x[goodout])$y
+      ys[goodout] = stats::predict(sp, x = x[goodout])$y
     }
   }
 
