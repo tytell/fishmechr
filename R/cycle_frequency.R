@@ -47,7 +47,7 @@ get_frequency <- function(t, ph, unwrap=FALSE, method='deriv', mod=2*pi,
   } else if (method == "slope") {
     if (any(is.finite(ph)) && any(is.finite(t))) {
       m <- stats::lm(ph ~ t, na.action = na.omit)
-      freq <- coefficients(m)[2] / mod
+      freq <- stats::coefficients(m)[2] / mod
     }
     else {
       freq <- NA
