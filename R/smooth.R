@@ -88,7 +88,7 @@ smooth_points_df <- function(
     group_by({{ .point }}) |>
     mutate(across(
       {{ cols }},
-      \(y) smooth_point({{ .frame }}, y, gaplen <= fillgaps, spar = spar),
+      \(y) smooth_point({{ .frame }}, y, spar, goodout = gaplen <= fillgaps),
       .names = nms
     ))
 }
@@ -156,7 +156,7 @@ find_gaps_df <- function(.data, cols, .frame = frame, .out = c('gaplen')) {
 #' y <- sin(2 * pi * x / 10) + rnorm(20, sd = 0.1)
 #' y[c(9, 10)] <- NA
 #' smooth_point(x, y, spar = 0.5)
-smooth_point <- function(x, y, goodout = NULL, spar) {
+smooth_point <- function(x, y, spar, goodout = NULL) {
   ys <- numeric(length(y))
   good <- !is.na(y)
 
