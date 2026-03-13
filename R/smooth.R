@@ -6,6 +6,8 @@
 #' @param .data Data frame containing the midlines.
 #' @param cols Columns containing the components to be smoothed. Often these will
 #'   be the x and y coordinates of the midline.
+#' @param spar Smoothing parameter passed to [smooth.spline()]. Values range
+#'   from 0 (no smoothing) to 1 (heavy smoothing).
 #' @param .out Names of the output columns. Should either be a list with the same
 #'   number of elements as cols, or a glue specification as in `dplyr::across` for
 #'   the `.names` parameter. The default (NULL) means that the output columns will
@@ -19,6 +21,10 @@
 #' @export
 #'
 #' @examples
+#' library(dplyr)
+#' # smooth x and y coordinates of the lamprey midline over time
+#' lampreydata |>
+#'   smooth_points_df(c(mxmm, mymm), spar = 0.6)
 smooth_points_df <- function(
   .data,
   cols,
@@ -104,6 +110,10 @@ smooth_points_df <- function(
 #' @export
 #'
 #' @examples
+#' # create a data frame with two NA gaps of different lengths
+#' df <- data.frame(frame = 1:10,
+#'                  x = c(1, 2, NA, NA, 5, 6, 7, NA, 9, 10))
+#' find_gaps_df(df, x)
 find_gaps_df <- function(.data, cols, .frame = frame, .out = c('gaplen')) {
   gaps <- .data |>
     mutate(across({{ cols }}, is.na)) |>
@@ -135,12 +145,17 @@ find_gaps_df <- function(.data, cols, .frame = frame, .out = c('gaplen')) {
 #' @param x x coordinate
 #' @param y y coordinate, potentially with NAs
 #' @param goodout Logical vector of where in the x coordinate to interpolate
-#' @param spar Smoothing parameter (see `smooth.spline`)
+#' @param spar Smoothing parameter (see [smooth.spline()])
 #'
 #' @returns The smoothed values
 #' @export
 #'
 #' @examples
+#' # smooth a noisy sine wave with two missing points
+#' x <- 1:20
+#' y <- sin(2 * pi * x / 10) + rnorm(20, sd = 0.1)
+#' y[c(9, 10)] <- NA
+#' smooth_point(x, y, spar = 0.5)
 smooth_point <- function(x, y, goodout = NULL, spar) {
   ys <- numeric(length(y))
   good <- !is.na(y)
