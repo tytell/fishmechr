@@ -12,11 +12,11 @@ Description: Processes tracked points on a fish's body and uses them to estimate
     chapter Hawkins, O.H., Di Santo, V., Tytell, Eric.D., 2025. "Biomechanics and 
     energetics of swimming", in: Higham, T.E., Lauder, G.V. (Eds.), Integrative 
     Fish Biomechanics, Fish Physiology. Academic Press. 
-    https://doi.org/10.1016/bs.fp.2025.06.003
+    <https://doi.org/10.1016/bs.fp.2025.06.003>.
 License: CC BY 4.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Depends:
     R (>= 4.4.0)
 LazyData: true
