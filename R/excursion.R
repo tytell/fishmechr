@@ -20,11 +20,12 @@
 #' @export
 #'
 #' @examples
+#' library(dplyr)
 #' # run the algorithm across multiple midlines at different times
 #' lampreydata |>
 #'   group_by(t) |>
 #'   summarize(swimaxis = get_primary_swimming_axis(mxmm, mymm)) |>
-#'   unnest(swimaxis)
+#'   tidyr::unnest(swimaxis)
 get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
   if (all(is.finite(x)) && all(is.finite(y))) {
     if (center) {
@@ -99,6 +100,17 @@ get_primary_swimming_axis <- function(x, y, center = TRUE, na.rm = FALSE) {
 #'
 #' @concept pipeline
 #' @export
+#'
+#' @examples
+#' library(dplyr)
+#' # subtract the center of mass, then estimate the primary swimming axis
+#' lampreydata |>
+#'   group_by(frame) |>
+#'   mutate(arclen = arclength(mxmm, mymm)) |>
+#'   ungroup() |>
+#'   get_midline_center_df(arclen, mxmm, mymm) |>
+#'   mutate(mxmm_ctr = mxmm - xcom, mymm_ctr = mymm - ycom) |>
+#'   get_primary_swimming_axis_df(t, mxmm_ctr, mymm_ctr)
 get_primary_swimming_axis_df <- function(
   .data,
   tm,
