@@ -157,7 +157,7 @@ get_cycle_numbers <- function(
 #'    group_by(point) |>
 #'    mutate(ph_c = hilbert_phase(curve_ang)) |>
 #'    ungroup() |>
-#'    get_body_cycle_numbers_df(ph, pointval = 18)
+#'    get_body_cycle_numbers_df(ph_c, pointval = 18)
 get_body_cycle_numbers_df <- function(
   .data,
   ph,
