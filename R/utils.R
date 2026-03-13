@@ -49,10 +49,12 @@ skip_na <- function(x, f, min.len = 1, ...) {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #' df <- data.frame(a=c(1,2,3), b=c(1,2,3))
 #'
 #' # this should give a warning
 #' check_if_overwrite_columns(df, c('a', 'd'), overwrite=TRUE)
+#' }
 check_if_overwrite_columns <- function(df, newcols, overwrite) {
   if (any(newcols %in% colnames(df))) {
     dfname <- "Data frame"
