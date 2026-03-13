@@ -28,7 +28,8 @@ Imports:
     pracma,
     rlang,
     tibble,
-    tidyr
+    tidyr,
+    tidyselect
 Suggests:
     ggplot2,
     knitr,
