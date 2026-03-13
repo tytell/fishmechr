@@ -11,6 +11,8 @@ skip_na(x, f, min.len = 1, ...)
 
 \item{f}{The function to run on the vector}
 
+\item{min.len}{Minimum number of non-NA values required to run \code{f} (default 1)}
+
 \item{...}{Other parameters to supply to the function}
 }
 \value{
