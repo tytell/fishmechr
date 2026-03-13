@@ -252,7 +252,7 @@ peak_phase <- function(x, unwrap=TRUE,
     izero <- c(izerodown, izeroup)
     zerosign <- factor(c(rep_len('down', length(izerodown)), rep_len('up', length(izeroup))),
                         levels = signlevels)
-    zerosign <- sort_by(izerosign, izero)
+    zerosign <- sort_by(zerosign, izero)
     izero <- sort(izero)
 
     izerooff <- rep_len(0, length(izero))
