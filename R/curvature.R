@@ -261,7 +261,8 @@ interpolate_points_df <- function(.data, arclen, x,y,
 #' @param ord Order of the derivative (1 or 2).
 #' @param method Method for taking second derivatives. Either
 #'   * 'direct' (default) Uses a direct formula, based on a central difference of
-#'     forward and backward differences, from [https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/]
+#'     forward and backward differences, from
+#'     <https://mathformeremortals.wordpress.com/2013/01/12/a-numerical-second-derivative-from-three-points/>
 #'   * 'repeat' Repeat two first derivatives.
 #' @param ends ('forwardback', 'NA', or 'drop') How to handle the endpoints
 #'   where central differencing is not possible. `'forwardback'` (default) uses
