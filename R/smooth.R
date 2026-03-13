@@ -30,7 +30,7 @@ smooth_points_df <- function(
 ) {
   assertthat::assert_that(
     !is_grouped_df(.data),
-    msg = "`get_midline_center_df` does not work on grouped data frames. Consider wrapping it in a call to `group_modify` to operate on groups separately"
+    msg = "`smooth_points_df` does not work on grouped data frames. Consider wrapping it in a call to `group_modify` to operate on groups separately"
   )
 
   if (missing(.frame)) {
@@ -64,11 +64,17 @@ smooth_points_df <- function(
   if (is.null(.out)) {
     nms <- '{.col}s'
   } else {
-    assertthat::assert_that(
-      (length(.out) == 1) ||
-        length(.out) == length(cols),
-      msg = "`.out` must either have the same length as `cols` or must have a name spec suitable for use in `dplyr::across` in the `.names` parameter"
-    )
+    # TODO: at some point, figure out how to check the length of
+    # the column names in cols without evaluating and check that
+    # .out matches.
+
+    # For the moment, assume that the user did it correctly.
+
+    # assertthat::assert_that(
+    #   (length(.out) == 1) ||
+    #     length(.out) == length(cols),
+    #   msg = "`.out` must either have the same length as `cols` or must have a name spec suitable for use in `dplyr::across` in the `.names` parameter"
+    # )
     nms <- .out
   }
 

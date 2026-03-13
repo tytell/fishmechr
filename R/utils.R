@@ -46,7 +46,7 @@ skip_na <- function(x, f, min.len = 1, ...) {
 #' @param newcols Names of the columns, as strings
 #' @param overwrite TRUE or FALSE to overwrite the columns
 #'
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' df <- data.frame(a=c(1,2,3), b=c(1,2,3))
@@ -98,7 +98,7 @@ check_if_overwrite_columns <- function(df, newcols, overwrite) {
 #' @param overwrite TRUE or FALSE to overwrite columns.
 #'
 #' @returns The updated `.out` list.
-#' @export
+#' @keywords internal
 check.out <- function(.data, .out, .out_default, overwrite) {
   if (is.null(.out)) {
     .out <- .out_default
