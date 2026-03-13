@@ -5,7 +5,9 @@
 #' @importFrom dplyr across any_of bind_cols case_when filter first group_by
 #'   if_else is_grouped_df lag lead left_join mutate n pick rename row_number
 #'   select summarise summarize ungroup
-#' @importFrom rlang as_name enquo eval_tidy quo_name
+#' @importFrom rlang := as_name enquo eval_tidy quo_name
+#' @importFrom stats approx coefficients lm median na.omit predict sd smooth.spline
 #' @importFrom tidyr fill unnest
+#' @importFrom tidyselect contains
 ## usethis namespace: end
 NULL
