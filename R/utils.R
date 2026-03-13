@@ -7,6 +7,7 @@
 #'
 #' @param x A vector that may have NAs
 #' @param f The function to run on the vector
+#' @param min.len Minimum number of non-NA values required to run `f` (default 1)
 #' @param ... Other parameters to supply to the function
 #'
 #' @return A vector with the same length as `x` with NAs in the same places
