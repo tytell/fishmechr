@@ -30,8 +30,6 @@
 #' @param excludepoints Exclude these points when estimating center. Some points
 #'   (like the tip of the tail) have relatively little mass and are hard to track,
 #'   so can introduce errors.
-#' @param cutoff (optional) If this parameter is included, smooth the swimming
-#'   axis data with a low-pass filter with a cutoff at this frequency.
 #' @param method 'mutate' or 'summarize'. If summarize, returns one center position
 #'   for each frame. If mutate, returns a same center position repeated for
 #'   each point in a frame.
@@ -44,11 +42,13 @@
 #'
 #' @concept pipeline
 #' @examples
+#' library(dplyr)
 #' lampreydata |>
 #'   group_by(frame) |>
 #'   mutate(arclen = arclength(mxmm, mymm),
 #'          width = interpolate_width(fishwidth$s, fishwidth$ammowidth, arclen)) |>
-#'   get_midline_center_df(arclen, mxmm,mymm, width=width)
+#'   ungroup() |>
+#'   get_midline_center_df(arclen, mxmm, mymm, width = width)
 get_midline_center_df <- function(
   .data,
   arclen,
@@ -227,6 +227,9 @@ get_midline_center_df <- function(
 #' @export
 #'
 #' @examples
+#' # volume of lamprey body segments using measured width and estimated height
+#' h <- seq(0.05, 0.03, length.out = nrow(fishwidth))  # height tapers head to tail
+#' get_volume(fishwidth$s, fishwidth$ammowidth, h)
 get_volume <- function(arclen, width, height) {
   ds <- dplyr::lead(arclen) - arclen
 
