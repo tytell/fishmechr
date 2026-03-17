@@ -15,6 +15,11 @@ You can see examples of more complex processing pipelines in the other vignettes
 
 You can install using
 ```
+install.packages("fishmechr")
+```
+
+or if you want the latest version
+```
 devtools::install_github("tytell/fishmechr")
 ```
 

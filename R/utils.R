@@ -56,6 +56,7 @@ skip_na <- function(x, f, min.len = 1, ...) {
 #' # this should give a warning
 #' check_if_overwrite_columns(df, c('a', 'd'), overwrite=TRUE)
 #' }
+#' @noRd
 check_if_overwrite_columns <- function(df, newcols, overwrite) {
   if (any(newcols %in% colnames(df))) {
     dfname <- "Data frame"
