@@ -1,6 +1,6 @@
 Package: fishmechr
 Title: Computes Kinematic Parameters for Swimming
-Version: 1.0.2
+Version: 1.0.3
 Authors@R: c(
     person("Eric", "Tytell", , "eric.tytell@tufts.edu", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-6603-9448")),

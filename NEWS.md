@@ -1,3 +1,5 @@
+# fishmechr 1.0.3
+
 # fishmechr 1.0.2
 
 * Initial CRAN submission.
