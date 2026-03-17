@@ -2,8 +2,11 @@ Package: fishmechr
 Title: Computes Kinematic Parameters for Swimming
 Version: 1.0.2
 Authors@R: 
-    person("Eric", "Tytell", , "eric.tytell@tufts.edu", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-6603-9448"))
+    person("Eric", "Tytell", , "eric.tytell@tufts.edu", role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0002-6603-9448")),
+    person("Olivia", "Hawkins", , "olivia.hawkins@tufts.edu", role = c("ctb"),
+           comment = c(ORCID = "0000-0001-9373-5919")),
+    person("National Science Foundation", role = "fnd")
 Description: Processes tracked points on a fish's body and uses them to estimate 
     standard kinematic parameters such as tail beat amplitude and frequency, body 
     wavelength and wavespeed. As part of this, it also estimates the location
