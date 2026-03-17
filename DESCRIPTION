@@ -41,5 +41,5 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-URL: https://tytell.github.io/fishmechr/
+URL: https://tytell.github.io/fishmechr/, https://github.com/tytell/fishmechr
 BugReports: https://github.com/tytell/fishmechr/issues
