@@ -18,9 +18,18 @@ Useful links:
 
 - <https://tytell.github.io/fishmechr/>
 
+- <https://github.com/tytell/fishmechr>
+
 - Report bugs at <https://github.com/tytell/fishmechr/issues>
 
 ## Author
 
 **Maintainer**: Eric Tytell <eric.tytell@tufts.edu>
-([ORCID](https://orcid.org/0000-0002-6603-9448))
+([ORCID](https://orcid.org/0000-0002-6603-9448)) \[copyright holder\]
+
+Other contributors:
+
+- Olivia Hawkins <olivia.hawkins@tufts.edu>
+  ([ORCID](https://orcid.org/0000-0001-9373-5919)) \[contributor\]
+
+- National Science Foundation \[funder\]
