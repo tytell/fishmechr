@@ -12,12 +12,19 @@ Processes tracked points on a fish's body and uses them to estimate standard kin
 Useful links:
 \itemize{
   \item \url{https://tytell.github.io/fishmechr/}
+  \item \url{https://github.com/tytell/fishmechr}
   \item Report bugs at \url{https://github.com/tytell/fishmechr/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Eric Tytell \email{eric.tytell@tufts.edu} (\href{https://orcid.org/0000-0002-6603-9448}{ORCID})
+\strong{Maintainer}: Eric Tytell \email{eric.tytell@tufts.edu} (\href{https://orcid.org/0000-0002-6603-9448}{ORCID}) [copyright holder]
+
+Other contributors:
+\itemize{
+  \item Olivia Hawkins \email{olivia.hawkins@tufts.edu} (\href{https://orcid.org/0000-0001-9373-5919}{ORCID}) [contributor]
+  \item National Science Foundation [funder]
+}
 
 }
 \keyword{internal}
