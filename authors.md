@@ -16,13 +16,13 @@ Source:
 [`DESCRIPTION`](https://github.com/tytell/fishmechr/blob/main/DESCRIPTION)
 
 Tytell E (2026). *fishmechr: Computes Kinematic Parameters for
-Swimming*. R package version 1.0.2,
+Swimming*. R package version 1.0.3,
 <https://tytell.github.io/fishmechr/>.
 
     @Manual{,
       title = {fishmechr: Computes Kinematic Parameters for Swimming},
       author = {Eric Tytell},
       year = {2026},
-      note = {R package version 1.0.2},
+      note = {R package version 1.0.3},
       url = {https://tytell.github.io/fishmechr/},
     }

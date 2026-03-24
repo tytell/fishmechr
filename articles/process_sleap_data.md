@@ -466,8 +466,3 @@ zfsummary |>
 ```
 
 ![](process_sleap_data_files/figure-html/unnamed-chunk-28-1.png)
-
-``` r
-  
-write.csv(zfsummary, "zfsummary.csv")
-```
