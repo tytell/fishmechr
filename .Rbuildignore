@@ -12,3 +12,4 @@
 ^\.claude$
 ^cran-comments\.md$
 ^00check\.log$
+^CRAN-SUBMISSION$

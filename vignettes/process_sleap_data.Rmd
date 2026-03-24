@@ -318,8 +318,6 @@ zfsummary <-
 zfsummary |> 
   ggplot(aes(x = speed, y = meanfreq)) +
   geom_point(aes(group = factor(speed)))
-  
-write.csv(zfsummary, "zfsummary.csv")
 ```
 
 
