@@ -2,6 +2,8 @@
 
 ## fishmechr 1.0.3
 
+CRAN release: 2026-03-29
+
 ## fishmechr 1.0.2
 
 - Initial CRAN submission.

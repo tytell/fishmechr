@@ -13,7 +13,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/tytell/fishmechr/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/tytell/fishmechr/blob/v1.0.3/DESCRIPTION)
 
 Tytell E (2026). *fishmechr: Computes Kinematic Parameters for
 Swimming*. R package version 1.0.3,
